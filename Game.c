@@ -4,7 +4,6 @@
  *  Created on: 23 Jul 2018
  *      Author: guywaldman
  */
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,8 +108,21 @@ int edit(gameData * game, char* path,){
 	}
 }
 
-int mark_errors(gameData * game){
+int mark_errors(gameData * game, char ** cmdArr){
+	int i;
+	if (!checkInt(cmdArr[0])) {/*check if valid int*/
 
+	}
+	i = atoi(cmdArr[0]);
+	if (i==0) {
+		game->errors = 0;
+	}
+	else if (i==1) {
+			game->errors = 1;
+	}
+	else{
+		printf("%d","Error: the value should be 0 or 1\n");
+	}
 }
 
 int set(gameData * game, char ** cmdArr){
