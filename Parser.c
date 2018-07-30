@@ -29,7 +29,15 @@
 #define EXIT "exit"
 #define ERROR_INV_CMD "ERROR: invalid command\n"
 
-int getCommand(gameData * game, int * cmdArr) {
+int checkToken(char * cmd){
+	if(cmd == NULL) {
+		printf(ERROR_INV_CMD); /*invalid command*/
+		return 0;
+	}
+	return 1;
+}
+
+int getCommand(gameData * game, char ** cmdArr) {
 	char input [cmdLen] = {0};
 	char *cmd;
 	int i;
@@ -45,8 +53,7 @@ int getCommand(gameData * game, int * cmdArr) {
 	}
 	else if (strcmp(cmd, SOLVE) == 0) {
 		cmd = strtok(NULL, DELIMITER);
-		if(cmd == NULL) {
-			printf(ERROR_INV_CMD); /*invalid command*/
+		if(checkToken(cmd) == 0) { /*invalid command*/
 			return 0;
 		}
 		solve(game, cmd);
@@ -57,11 +64,10 @@ int getCommand(gameData * game, int * cmdArr) {
 	}
 	else if (strcmp(cmd, MARK) == 0) {
 		cmd = strtok(NULL, DELIMITER);
-		if(cmd == NULL || (strcmp(cmd,"0") != 0 && strcmp(cmd,"1") != 0)) {
-			printf(ERROR_INV_CMD);
+		if(checkToken(cmd) == 0) {
 			return 0;
 		}
-		mark_errors(game);
+		mark_errors(game, cmd);
 	}
 	else if (strcmp(cmd, PRINT) == 0) {
 		printBoard(game);
@@ -69,11 +75,10 @@ int getCommand(gameData * game, int * cmdArr) {
 	else if (strcmp(cmd, SET) == 0) {
 		for (i = 0; i < 3; i++) {
 			cmd = strtok(NULL, DELIMITER);
-			if(cmd == NULL) {
-				printf(ERROR_INV_CMD);
+			if(checkToken(cmd) == 0) {
 				return 0;
 			}
-			cmdArr[i] = atoi(cmd);
+			cmdArr[i] = cmd;
 		}
 		set(game, cmdArr);
 	}
@@ -83,11 +88,10 @@ int getCommand(gameData * game, int * cmdArr) {
 	else if (strcmp(cmd, GENERATE) == 0) {
 		for (i = 0; i < 2; i++) {
 			cmd = strtok(NULL, DELIMITER);
-			if(cmd == NULL) {
-				printf(ERROR_INV_CMD);
+			if(checkToken(cmd) == 0) {
 				return 0;
 			}
-			cmdArr[i] = atoi(cmd);
+			cmdArr[i] = cmd;
 		}
 		generate(game, cmdArr);
 	}
@@ -99,21 +103,18 @@ int getCommand(gameData * game, int * cmdArr) {
 	}
 	else if (strcmp(cmd, SAVE) == 0) {
 		cmd = strtok(NULL, DELIMITER);
-		if(cmd == NULL) {
-			printf(ERROR_INV_CMD);
+		if(checkToken(cmd) == 0) {
 			return 0;
 		}
 		save(game, cmd);
 	}
-	if (strcmp(cmd, HINT) == 0) {
-		cmdArr[0] = 2;
+	else if (strcmp(cmd, HINT) == 0) {
 		for (i = 0; i < 2; i++) {
 			cmd = strtok(NULL, DELIMITER);
-			if(cmd == NULL) {
-				printf(ERROR_INV_CMD);
+			if(checkToken(cmd) == 0) {
 				return 0;
 			}
-			cmdArr[i] = atoi(cmd);
+			cmdArr[i] = cmd;
 		}
 		hint(game, cmdArr);
 	}
@@ -128,6 +129,9 @@ int getCommand(gameData * game, int * cmdArr) {
 	}
 	else if (strcmp(cmd, EXIT) == 0) {
 		exitGame(game);
+	}
+	else {
+		printf(ERROR_INV_CMD);
 	}
 	return 0;
 }
