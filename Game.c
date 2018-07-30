@@ -14,7 +14,7 @@
 #define ERROR_FILE "Error: File doesn't exist or cannot be opened\n"
 #define ERROR_VALUES "Error: board contains erroneous values\n"
 #define ERROR_INVALID "Error: board validation failed\n"
-#define ERROR_SET_RANGE "Error: value not in range 0-%d\n"
+#define ERROR_VALUE_RANGE "Error: value not in range 0-%d\n"
 
 typedef struct GameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
@@ -47,7 +47,7 @@ gameData * initGame() {
 
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
-		if (isdigit(*cmd) == 0) {
+		if (!isdigit(*cmd)) {
 			return 0;
 		}
 		cmd++;
@@ -58,7 +58,7 @@ int checkInt(char * cmd) {
 int checkArgs(char ** cmdArr, int max, int len) {
 	int i;
 	for (i=0; i < len; i++){
-		if (checkInt(cmdArr[i] == 0)){
+		if (!checkInt(cmdArr[i])){
 			return 0;
 		}
 		if (atoi(cmdArr[i]) < 0 || atoi(cmdArr[i]) > max) {
@@ -66,6 +66,13 @@ int checkArgs(char ** cmdArr, int max, int len) {
 		}
 	}
 	return 1;
+}
+
+int checkFixed(gameData * game, int x, int y) {
+	if (game->board[x + game->bSize - 1][y - 1] == 1) {
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -106,12 +113,18 @@ int mark_errors(gameData * game){
 
 }
 
-int set(gameData * game, int * cmdArr){
+int set(gameData * game, char ** cmdArr){
 	if (game->mode != 1 || game->mode != 2) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if checkAr
+	if (!checkArgs(cmdArr)) {
+		printf(ERROR_VALUE_RANGE, game->bSize);
+		return 0;
+	}
+	if (checkFixed(game, cmdArr[0], cmdArr[1])) {
+
+	}
 }
 
 int validate(gameData * game, int x, int y, int z){
