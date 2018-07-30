@@ -14,6 +14,9 @@
 #define ERROR_VALUES "Error: board contains erroneous values\n"
 #define ERROR_INVALID "Error: board validation failed\n"
 #define ERROR_VALUE_RANGE "Error: value not in range 0-%d\n"
+#define ERROR_FIXED "Error: cell is fixed\n"
+#define ERROR_SOL "Puzzle solution erroneous\n"
+#define PUZ_SOLVED "Puzzle solved successfully\n"
 
 typedef struct GameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
@@ -22,6 +25,7 @@ typedef struct GameData {
 	int n;
 	int m;
 	int bSize;
+	int numEmpty; /*number of empty cells*/
 	int ** board;
 	node * head;
 	node * curr;
@@ -36,7 +40,8 @@ gameData * initGame() {
 	game->errors = 0;
 	game->n = 9;
 	game->m = 9;
-	game->bSize = game->n*game->m;
+	game->bSize = game->n * game->m;
+	numEmpty = game->bSize * game->bSize;
 	game->board = NULL;
 	game->head = NULL;
 	game->curr = NULL;
@@ -68,7 +73,7 @@ int checkArgs(char ** cmdArr, int max, int len) {
 }
 
 int checkFixed(gameData * game, int x, int y) {
-	if (game->board[x + game->bSize - 1][y - 1] == 1) {
+	if (game->mode == 1 && game->board[x + game->bSize - 1][y - 1] == 1) { /*only in solve mode*/
 		return 1;
 	}
 	return 0;
@@ -92,6 +97,9 @@ int solve(gameData * game, char * path) {
 		for(i = 0; i < game->bSize; i++) {
 			fscanf(gameF, "%d%c", &cell, &c);
 			game->board[i][j] = cell;
+			if (cell != 0) {
+				game->numEmpty--;
+			}
 			if (c == '.') {
 				game->board[game->bSize + i][j] = 1;
 			}
@@ -126,20 +134,55 @@ int mark_errors(gameData * game, char ** cmdArr){
 }
 
 int set(gameData * game, char ** cmdArr){
+	int x, y, z, prev;
 	if (game->mode != 1 || game->mode != 2) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkArgs(cmdArr)) {
+	if (!checkArgs(cmdArr, game->bSize, 3)) {
 		printf(ERROR_VALUE_RANGE, game->bSize);
 		return 0;
 	}
-	if (checkFixed(game, cmdArr[0], cmdArr[1])) {
-
+	x = atoi(cmdArr[0]);
+	y = atoi(cmdArr[1]);
+	prev = game->board[x-1][y-1];
+	z = atoi(cmdArr[2]);
+	if (checkFixed(game, x, y)) {
+		printf(ERROR_FIXED);
+		return 0;
 	}
+	setList(game, cmdArr); /*clear all next moves and mark this "set" as current one*/
+	game->board[x-1][y-1] = z;
+	if (z!=0) {
+		if (game->mode == 2) { /*if in edit mode make cell fixed*/
+			game->board[x + game->bSize - 1][y-1] = 1;
+		}
+		checkSetError(game, x, y, z); /*if current set caused an error mark the cells*/
+		if (prev == 0) {
+			game->numEmpty--;
+		}
+	}
+	else {
+		if (prev != 0) {
+			game->numEmpty++;
+		}
+	}
+	printBoard(game);
+	if (game->numEmpty == 0 && game->mode == 1) {
+		if (!validate(game)) {
+			printf(ERROR_SOL);
+			return 0;
+		}
+		else {
+			printf(PUZ_SOLVED);
+			newGame(game, 0); /*init mode and new game*/
+			return 1;
+		}
+	}
+	return 1;
 }
 
-int validate(gameData * game, int x, int y, int z){
+int validate(gameData * game) {
 
 }
 
