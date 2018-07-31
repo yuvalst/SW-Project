@@ -14,10 +14,13 @@
 #define ERROR_FILE "Error: File doesn't exist or cannot be opened\n"
 #define ERROR_VALUES "Error: board contains erroneous values\n"
 #define ERROR_INVALID "Error: board validation failed\n"
-#define ERROR_VALUE_RANGE "Error: value not in range 0-%d\n"
+#define ERROR_VALUE_RANGE "Error: value not in range %d-%d\n"
 #define ERROR_FIXED "Error: cell is fixed\n"
 #define ERROR_SOL "Puzzle solution erroneous\n"
+#define ERROR_UNSLOVABLE "Error: board is unsolvable\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
+#define ERROR_CONTAINS_VAL "Error: cell already contains a value\n"
+#define HINT "Hint: set cell to %d\n"
 
 typedef struct GameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
@@ -49,6 +52,13 @@ gameData * initGame() {
 	return game;
 }
 
+gameData * newGame(gameData * game, int mode) {
+
+}
+
+int checkErrors(gameData * game) {
+
+}
 
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
@@ -80,6 +90,7 @@ int checkFixed(gameData * game, int x, int y) {
 	return 0;
 }
 
+int validate(gameData * game);
 
 int solve(gameData * game, char * path) {
 	FILE * gameF;
@@ -128,7 +139,7 @@ int set(gameData * game, char ** cmdArr){
 		return 0;
 	}
 	if (!checkArgs(cmdArr, game->bSize, 3)) {
-		printf(ERROR_VALUE_RANGE, game->bSize);
+		printf(ERROR_VALUE_RANGE, 0, game->bSize);
 		return 0;
 	}
 	x = atoi(cmdArr[0]);
@@ -224,8 +235,41 @@ int save(gameData * game, char * path) {
 	return 1;
 }
 
-int hint(gameData * game, int x, int y, int z){
-
+int hint(gameData * game, char ** cmdArr){
+	int x, y, res;
+	gameData * gameC = NULL;
+	if(game->mode != 1) {
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	if(!checkArgs(cmdArr, game->bSize, 2)){ /*invalid arguments*/
+		printf(ERROR_VALUE_RANGE, 1, game->bSize);
+		return 0;
+	}
+	if(game->errors) {
+		printf(ERROR_VALUES);
+		return 0;
+	}
+	x = atoi(cmdArr[0]);
+	y = atoi(cmdArr[1]);
+	if(game->board[x + game->bSize - 1][y-1] == 1) {
+		printf(ERROR_FIXED);
+		return 0;
+	}
+	if(game->board[x-1][y-1] != 0){
+		printf(ERROR_CONTAINS_VAL);
+		return 0;
+	}
+	copyGame(gameC, game); /*allocate gameC and copy game into it*/
+	res = ilpSol(gameC);
+	if(!res) { /*board unsolvable*/
+		printf(ERROR_UNSLOVABLE);
+		freeGame(gameC);
+		return 0;
+	}
+	printf(HINT, gameC->board[x-1][y-1]);
+	freeGame(gameC);
+	return 1;
 }
 
 int num_solutions(gameData * game, int x, int y, int z){
