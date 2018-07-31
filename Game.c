@@ -42,7 +42,7 @@ gameData * initGame() {
 	game->n = 9;
 	game->m = 9;
 	game->bSize = game->n * game->m;
-	numEmpty = game->bSize * game->bSize;
+	game->numEmpty = game->bSize * game->bSize;
 	game->board = NULL;
 	game->head = NULL;
 	game->curr = NULL;
@@ -52,7 +52,7 @@ gameData * initGame() {
 
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
-		if (!isdigit(*cmd)) {
+		if(*cmd < 48 || *cmd > 57) {
 			return 0;
 		}
 		cmd++;
