@@ -17,6 +17,7 @@
 #define ERROR_FIXED "Error: cell is fixed\n"
 #define ERROR_SOL "Puzzle solution erroneous\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
+#define ERROR_MARK_ERRORS "Error: the value should be 0 or 1\n"
 
 typedef struct GameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
@@ -79,6 +80,28 @@ int checkFixed(gameData * game, int x, int y) {
 	return 0;
 }
 
+int checkValid(gameData * game, int x, int y, int z) {
+	int i, j, cStart, rStart;
+	int** board = game->board;
+	/*if (board[x - 1][y - 1] == z) { cell x, y already has value of z
+		return 1;
+	}*/
+	for (i = 0; i < game->bSize; i++) {
+		if ((board[i][y - 1] == z) || (board[x - 1][i] == z)) {
+			return 0;
+		}
+	}
+	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
+	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
+	for (i = cStart; i < cStart + game->n; i++) {
+		for (j = rStart; j < rStart + game->m; j++) {
+			if (board[i][j] == z) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
 
 int solve(gameData * game, char * path) {
 	FILE * gameF;
@@ -112,14 +135,16 @@ int solve(gameData * game, char * path) {
 
 int edit(gameData * game, char* path,){
 	if (path == NULL) {
-
+		printf(ERROR_INV_CMD);
 	}
+
 }
 
 int mark_errors(gameData * game, char ** cmdArr){
 	int i;
 	if (!checkInt(cmdArr[0])) {/*check if valid int*/
-
+		printf(ERROR_INV_CMD);
+		return 0;
 	}
 	i = atoi(cmdArr[0]);
 	if (i==0) {
@@ -129,8 +154,10 @@ int mark_errors(gameData * game, char ** cmdArr){
 			game->errors = 1;
 	}
 	else{
-		printf("%d","Error: the value should be 0 or 1\n");
+		printf(ERROR_MARK_ERRORS); /*not a valid number*/
+		return 0;
 	}
+	return 1;
 }
 
 int set(gameData * game, char ** cmdArr){
@@ -240,8 +267,16 @@ int hint(gameData * game, int x, int y, int z){
 
 }
 
-int num_solutions(gameData * game, int x, int y, int z){
-
+int num_solutions(gameData * game){
+	if (game->mode == 0) {
+			printf(ERROR_INV_CMD);
+			return 0;
+	}
+	if (game->errors!=0) {
+		printf(ERROR_VALUES);
+		return 0;
+	}
+	return exhaustiveBT(game);
 }
 
 int autofill(gameData * game, int x, int y, int z){
@@ -253,6 +288,10 @@ int reset(gameData * game, int x, int y, int z){
 }
 
 int exit(gameData * game, int x, int y, int z){
+
+}
+
+int exhaustiveBT(gameData * game){
 
 }
 
