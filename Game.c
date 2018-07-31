@@ -13,13 +13,15 @@
 #define ERROR_FILE "Error: File doesn't exist or cannot be opened\n"
 #define ERROR_VALUES "Error: board contains erroneous values\n"
 #define ERROR_INVALID "Error: board validation failed\n"
-#define ERROR_VALUE_RANGE "Error: value not in range 0-%d\n"
+#define ERROR_VALUE_RANGE "Error: value not in range %d-%d\n"
 #define ERROR_FIXED "Error: cell is fixed\n"
 #define ERROR_SOL "Puzzle solution erroneous\n"
+#define ERROR_UNSLOVABLE "Error: board is unsolvable\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
 #define ERROR_MARK_ERRORS "Error: the value should be 0 or 1\n"
 #define ERROR_CONTAINS_VAL "Error: cell already contains a value\n"
 #define HINT "Hint: set cell to %d\n"
+
 
 typedef struct GameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
