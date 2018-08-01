@@ -155,6 +155,10 @@ int edit(gameData * game, char* path,){
 
 int mark_errors(gameData * game, char ** cmdArr){
 	int i;
+	if (game->mode != 1) {
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
 	if (!checkInt(cmdArr[0])) {/*check if valid int*/
 		printf(ERROR_INV_CMD);
 		return 0;
@@ -322,6 +326,7 @@ int num_solutions(gameData * game){
 		printf(ERROR_VALUES);
 		return 0;
 	}
+	printf("%d",exhaustiveBT(game));
 	return exhaustiveBT(game);
 }
 
