@@ -160,7 +160,7 @@ int mark_errors(gameData * game, char ** cmdArr){
 		return 0;
 	}
 	if (!checkInt(cmdArr[0])) {/*check if valid int*/
-		printf(ERROR_INV_CMD);
+		printf(ERROR_MARK_ERRORS);
 		return 0;
 	}
 	i = atoi(cmdArr[0]);
@@ -179,7 +179,7 @@ int mark_errors(gameData * game, char ** cmdArr){
 
 int set(gameData * game, char ** cmdArr){
 	int x, y, z, prev;
-	if (game->mode != 1 || game->mode != 2) {
+	if (game->mode != 1 && game->mode != 2) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
