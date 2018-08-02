@@ -11,6 +11,7 @@
 
 #define ERROR_INV_CMD "ERROR: invalid command\n"
 #define ERROR_FILE "Error: File doesn't exist or cannot be opened\n"
+#define ERROR_FILE2 "Error: File cannot be opened\n"
 #define ERROR_VALUES "Error: board contains erroneous values\n"
 #define ERROR_INVALID "Error: board validation failed\n"
 #define ERROR_VALUE_RANGE "Error: value not in range %d-%d\n"
@@ -148,10 +149,38 @@ int solve(gameData * game, char * path) {
 	return 1;
 }
 
-int edit(gameData * game, char* path,){
+int edit(gameData * game, char* path){
+	/*need to clear old data and board*/
+	FILE * gameF;
+	int i, j;
 	if (path == NULL) {
-		printf(ERROR_INV_CMD);
+		game->n = 3;
+		game->m = 3;
+		game->bSize = 9;
+		game->board = initBoard(game->bSize , 2);
 	}
+	else {
+		gameF = fopen(path, "r");
+		if (gameF == NULL) {
+			printf(ERROR_FILE2);
+			return 0;
+		}
+		fscanf(gameF, "%d %d\n", game->n, game->m);
+		game->bSize = game->n * game->m;
+		game->board = initBoard(game->bSize , 2);
+		for(j = 0; j < game->bSize; j++) {
+			for(i = 0; i < game->bSize; i++) {
+				fscanf(gameF, "%d", game->board[i][j]);
+			}
+			if (j != game->bSize - 1) {
+				fprintf(gameF, "\n");
+			}
+		}
+		fclose(gameF);
+	}
+
+
+
 
 }
 
@@ -437,3 +466,18 @@ int exhaustiveBT(gameData * game){
 
 }
 
+int ** initBoard(int bSize, int multi) { /*imported from hw3*/
+	int i;
+	int *p;
+	int **board;
+	p = calloc(multi * bSize * bSize, sizeof(int)); /*from col bSize we keep matrix of 0/1 which tells which cell is fixed*/
+	board = calloc(multi * bSize, sizeof(int *));
+	if (p == NULL || board == NULL) {
+		printf("Error: calloc has failed\n");
+		exit(0);
+	}
+	for(i = 0; i < multi * bSize ; i++ ) {
+		board[i] = p + i*bSize;
+	}
+	return board;
+}
