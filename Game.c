@@ -18,6 +18,8 @@
 #define ERROR_FIXED "Error: cell is fixed\n"
 #define ERROR_SOL "Puzzle solution erroneous\n"
 #define ERROR_UNSLOVABLE "Error: board is unsolvable\n"
+#define ERROR_NOT_EMPTY "Error: board is not empty\n"
+#define ERROR_GENERATE "Error: puzzle generator failed\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
 #define ERROR_CONTAINS_VAL "Error: cell already contains a value\n"
 #define HINT "Hint: set cell to %d\n"
@@ -185,8 +187,87 @@ int validate(gameData * game) {
 
 }
 
-int generate(gameData * game, int x, int y, int z){
-
+int generate(gameData * game, char ** cmdArr){
+	int x, y, i, j, f, k, try, res, numOfOnes, options = game->bSize;
+	int * values;
+	if(game->mode!=2) { /*not in edit mode*/
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	if (!checkArgs(cmdArr, game->bSize, 2)) {
+		printf(ERROR_VALUE_RANGE, 0, game->bSize);
+		return 0;
+	}
+	if(game->numEmpty != game->bSize * game->bSize) { /*if board isn't empty*/
+		printf(ERROR_NOT_EMPTY);
+		return 0;
+	}
+	x = atoi(cmdArr[0]);
+	y = atoi(cmdArr[1]);
+	values = calloc(game->bSize, sizeof(int));
+	/*assert calloc*/
+	for (try = 0; try < 1000; try++) { /*1000 tries*/
+		res = 1;
+		for (f = 0; f < x; f++) { /*find x random cells to fill with valid values*/
+			options = game->bSize;
+			for (k = 0; k < game->bSize; k++) {
+				values[k] = 1;
+			}
+			do {
+				i = (rand() % game->bSize);
+				j = (rand() % game->bSize);
+			}
+			while (game->board[i][j] != 0); /*find empty cell*/
+			while (options > 0) { /*while still have value options*/
+				numOfOnes = (rand() % options) + 1; /*choose random value index*/
+				for (k = 1; k <= game->bSize; k++) {
+					if (values[k] == 1) {
+						numOfOnes--;
+					}
+					if (numOfOnes == 0) { /*found the random chosen index of the value*/
+						break;
+					}
+				}
+				if (checkValid(game, i, j, k)) { /*random value is valid*/
+					game->board[i][j] = k;
+					game->board[i + game->bSize][j] = 1;
+					break;
+				}
+				values[k] = 0; /*random value isn't an option anymore for this cell*/
+				options--; /*one less option*/
+			}
+			if(game->board[i][j] == 0) { /*couldn't find random valid value*/
+				for(i = 0; i < game->bSize; i++) {
+					for(j = 0; j < game->bSize; j++) { /*clear board*/
+						game->board[i][j] = 0;
+						game->board[i + game->bSize][j] = 0;
+					}
+				}
+				res = 0;
+				break;
+			}
+		}
+		if(res == 1) { /*was able to fill x cells*/
+			res = ilpSolve(game);
+		}
+		if(res == 0) { /*board unsolvable*/
+			if(try == 999) {
+				printf(ERROR_GENERATE);
+			}
+			continue;
+		}
+		for (f = 0; f < (game->bSize * game->bSize) - y; f++) { /*find random cells to erase*/
+			i = (rand() % game->bSize);
+			j = (rand() % game->bSize);
+			game->board[i][j] = 0;
+			game->board[i + game->bSize][j] = 0;
+		}
+		game->numEmpty = (game->bSize * game->bSize) - y;
+		printBoard(game);
+	}
+	addList()
+	free(values);
+	return res;
 }
 
 int undo(gameData * game, int x, int y, int z){
