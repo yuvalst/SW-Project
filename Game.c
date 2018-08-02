@@ -148,16 +148,13 @@ int set(gameData * game, char ** cmdArr){
 	y = atoi(cmdArr[1]);
 	prev = game->board[x-1][y-1];
 	z = atoi(cmdArr[2]);
-	if (checkFixed(game, x, y)) {
+	if (game->mode == 1 && checkFixed(game, x, y)) {
 		printf(ERROR_FIXED);
 		return 0;
 	}
 	setList(game, cmdArr); /*clear all next moves and mark this "set" as current one*/
 	game->board[x-1][y-1] = z;
 	if (z!=0) {
-		if (game->mode == 2) { /*if in edit mode make cell fixed*/
-			game->board[x + game->bSize - 1][y-1] = 1;
-		}
 		checkSetError(game, x, y, z); /*if current set caused an error mark the cells*/
 		if (prev == 0) {
 			game->numEmpty--;
@@ -194,8 +191,8 @@ int generate(gameData * game, char ** cmdArr){
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkArgs(cmdArr, game->bSize, 2)) {
-		printf(ERROR_VALUE_RANGE, 0, game->bSize);
+	if (!checkArgs(cmdArr, game->bSize * game->bSize, 2)) {
+		printf(ERROR_VALUE_RANGE, 0, game->bSize * game->bSize);
 		return 0;
 	}
 	if(game->numEmpty != game->bSize * game->bSize) { /*if board isn't empty*/
@@ -230,7 +227,6 @@ int generate(gameData * game, char ** cmdArr){
 				}
 				if (checkValid(game, i, j, k)) { /*random value is valid*/
 					game->board[i][j] = k;
-					game->board[i + game->bSize][j] = 1;
 					break;
 				}
 				values[k] = 0; /*random value isn't an option anymore for this cell*/
@@ -240,7 +236,6 @@ int generate(gameData * game, char ** cmdArr){
 				for(i = 0; i < game->bSize; i++) {
 					for(j = 0; j < game->bSize; j++) { /*clear board*/
 						game->board[i][j] = 0;
-						game->board[i + game->bSize][j] = 0;
 					}
 				}
 				res = 0;
@@ -256,16 +251,31 @@ int generate(gameData * game, char ** cmdArr){
 			}
 			continue;
 		}
-		for (f = 0; f < (game->bSize * game->bSize) - y; f++) { /*find random cells to erase*/
+		for (f = 0; f < y;) { /*find random cells to keep*/
 			i = (rand() % game->bSize);
 			j = (rand() % game->bSize);
-			game->board[i][j] = 0;
-			game->board[i + game->bSize][j] = 0;
+			if (game->board[i + game->bSize][j] != 3) {
+				game->board[i + game->bSize][j] = 3;
+				f++;
+			}
+		}
+		for(i = 0; i < game->bSize; i++) {
+			for(j = 0; j < game->bSize; j++) {
+				if (game->board[i + game->bSize][j] != 3) {
+					game->board[i][j] = 0;
+				}
+				else {
+					game->board[i + game->bSize][j] = 0;
+				}
+			}
 		}
 		game->numEmpty = (game->bSize * game->bSize) - y;
 		printBoard(game);
+		break;
 	}
-	addList()
+	if (res != 0) {
+		addList();
+	}
 	free(values);
 	return res;
 }
