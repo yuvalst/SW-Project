@@ -23,6 +23,7 @@
 #define ERROR_MARK_ERRORS "Error: the value should be 0 or 1\n"
 #define ERROR_CONTAINS_VAL "Error: cell already contains a value\n"
 #define HINT "Hint: set cell to %d\n"
+#define AUTO_SET "Cell <%d,%d> set to %d\n"
 
 
 typedef struct GameData {
@@ -73,13 +74,16 @@ int checkInt(char * cmd) {
 	return 1;
 }
 
-int checkArgs(char ** cmdArr, int max, int len) {
+int checkArgs(char ** cmdArr, int min, int max, int len) {
 	int i;
 	for (i=0; i < len; i++){
 		if (!checkInt(cmdArr[i])){
 			return 0;
 		}
-		if (atoi(cmdArr[i]) < 0 || atoi(cmdArr[i]) > max) {
+		if (i <= 1 && ((atoi(cmdArr[i]) < min) || (atoi(cmdArr[i]) > max))) { /*for X/Y in set, hint and generate*/
+			return 0;
+		}
+		if (i == 2 && ((atoi(cmdArr[i]) < min - 1) || (atoi(cmdArr[i]) > max))) { /*for Z in set*/
 			return 0;
 		}
 	}
@@ -92,7 +96,10 @@ int checkFixed(gameData * game, int x, int y) {
 	}
 	return 0;
 }
+
+
 int validate(gameData * game);
+
 
 int checkValid(gameData * game, int x, int y, int z) {
 	int i, j, cStart, rStart;
@@ -115,6 +122,51 @@ int checkValid(gameData * game, int x, int y, int z) {
 		}
 	}
 	return 1;
+}
+
+
+int singleValue(gameData * gameC, int i, int j) {
+	int options = gameC->bSize, r, c, cStart, rStart;
+	int * values = calloc(gameC->bSize, sizeof(int));
+	/*assert calloc*/
+	for (c = 0; c < gameC->bSize; c++) {
+		if (gameC->board[c][j] != 0 && values[gameC->board[r][j]] == 1) {
+			values[gameC->board[c][j]] = 0;
+			options--;
+		}
+		if (gameC->board[i][r] != 0 && values[gameC->board[i][r]] == 1) {
+			values[gameC->board[i][r]] = 0;
+			options--;
+		}
+		if (options == 0) {
+			free(values);
+			return 0;
+		}
+	}
+	cStart = (i) - ((i) % gameC->n); /*starting col of inner block*/
+	rStart = (j) - ((j) % gameC->m); /*starting row of inner block*/
+	for (c = cStart; c < cStart + gameC->n; c++) {
+		for (r = rStart; r < rStart + gameC->m; r++) {
+			if (gameC->board[c][r] != 0 && values[gameC->board[c][r]] == 1) {
+				values[gameC->board[c][r]] = 0;
+				options--;
+				if (options == 0) {
+					free(values);
+					return 0;
+				}
+			}
+		}
+	}
+	if (options == 1) {
+		for (c = 0; c < gameC->bSize; c++) {
+			if (values[c] == 1) {
+				free(values);
+				return c+1;
+			}
+		}
+	}
+	free(values);
+	return 0;
 }
 
 
@@ -185,7 +237,7 @@ int set(gameData * game, char ** cmdArr){
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkArgs(cmdArr, game->bSize, 3)) {
+	if (!checkArgs(cmdArr, 1, game->bSize, 3)) {
 		printf(ERROR_VALUE_RANGE, 0, game->bSize);
 		return 0;
 	}
@@ -236,7 +288,7 @@ int generate(gameData * game, char ** cmdArr){
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkArgs(cmdArr, game->bSize * game->bSize, 2)) {
+	if (!checkArgs(cmdArr, 0, game->bSize * game->bSize, 2)) {
 		printf(ERROR_VALUE_RANGE, 0, game->bSize * game->bSize);
 		return 0;
 	}
@@ -378,7 +430,7 @@ int hint(gameData * game, char ** cmdArr){
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if(!checkArgs(cmdArr, game->bSize, 2)){ /*invalid arguments*/
+	if(!checkArgs(cmdArr, 1, game->bSize, 2)){ /*invalid arguments*/
 		printf(ERROR_VALUE_RANGE, 1, game->bSize);
 		return 0;
 	}
@@ -421,8 +473,34 @@ int num_solutions(gameData * game){
 	return exhaustiveBT(game);
 }
 
-int autofill(gameData * game, int x, int y, int z){
-
+int autofill(gameData * game){
+	int i, j, z, val = 0;
+	gameData * gameC = NULL;
+	if(game->mode != 1) {
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	if(game->errors == 1) {
+		printf(ERROR_VALUES);
+		return 0;
+	}
+	copyGame(gameC, game);
+	for (i = 0; i < game->bSize; i++) {
+		for (j = 0; j < game->bSize; j++) {
+			if (game->board[i][j] == 0) {
+				val = singleValue(gameC, i, j);
+				if (val != 0) {
+					game->board[i][j] = val;
+					printf(AUTO_SET, i, j, val);
+					/*add the set to the command node in the list*/
+					game->numEmpty--;
+				}
+			}
+		}
+	}
+	printBoard(game);
+	freeGame(gameC);
+	return 1;
 }
 
 int reset(gameData * game, int x, int y, int z){
