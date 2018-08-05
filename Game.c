@@ -57,7 +57,9 @@ gameData * initGame() {
 }
 
 gameData * newGame(gameData * game, int mode) {
-
+	if (game->board) {
+		freeBoard(game->board);
+	}
 }
 
 int ** initBoard(int bSize, int multi) { /*imported from hw3*/
@@ -76,6 +78,21 @@ int ** initBoard(int bSize, int multi) { /*imported from hw3*/
 	return board;
 }
 
+void freeBoard(int** board){
+	free(board[0]);
+	free(board);
+}
+
+int ChangeCellsWithValTo(gameData * game, int num){
+	int i,j;
+	for (i = 0; i < game->bSize; ++i) {
+		for (j = 0; j < game->bSize; ++j) {
+			if (game->board[i][j]) {
+				game->board[i][game->bSize+j]=num;
+			}
+		}
+	}
+}
 int checkErrors(gameData * game) {
 
 }
@@ -265,7 +282,22 @@ int set(gameData * game, char ** cmdArr){
 }
 
 int validate(gameData * game) {
-
+	if(game->mode==0) { /*not in edit or solve mode*/
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	else if (game->errors!=0) {
+		printf("Validation passed: board is solvable\n");
+		return 0;
+	}
+	else if (ilpSolver(game)) {
+		printf("Validation passed: board is solvable\n");
+		return 1;
+	}
+	else{
+		printf("Validation failed: board is unsolvable\n");
+		return 0;
+	}
 }
 
 int generate(gameData * game, char ** cmdArr){
@@ -448,6 +480,7 @@ int hint(gameData * game, char ** cmdArr){
 }
 
 int num_solutions(gameData * game){
+	int numOsols;
 	if (game->mode == 0) {
 			printf(ERROR_INV_CMD);
 			return 0;
@@ -457,7 +490,15 @@ int num_solutions(gameData * game){
 		return 0;
 	}
 	printf("%d",exhaustiveBT(game));
-	return exhaustiveBT(game);
+	numOsols =  exhaustiveBT(game);
+	printf("Number of solutions: %d\n",numOsols);
+	if (numOsols == 1) {
+		printf("This is a good board!\n");
+	}
+	else{
+		printf("The puzzle has more than 1 solution, try to edit it further\n");
+	}
+
 }
 
 int autofill(gameData * game, int x, int y, int z){
@@ -473,7 +514,68 @@ int exit(gameData * game, int x, int y, int z){
 }
 
 int exhaustiveBT(gameData * game){
+	int x, y, i, counter=0 ,dir=1;
+	gameData * gameC = NULL;
+	copyGame(gameC, game);
+	ChangeCellsWithValTo(gameC,1);
 
+	for (x = 1; x < gameC->bSize;) { /*x is column*/
+		for (y = 1; y < gameC->bSize;) { /*y is row*/
+			if (y==0) { /*finished to check all possibilities*/
+				return counter;
+			}
+			if (gameC->board[y][gameC->bSize+x] != 0) { /*cell is fixed*/
+				btMove(gameC, &x, &y, dir); /*move to next cell*/
+				continue;
+			}
+			else{
+				for (i = gameC->board[x][y]+1; i <= gameC->bSize; i++) { /*otherwise we check all valid values*/
+					if (checkValid(gameC, x, y, i)) { /*need to check if x and y are correct order*/
+						gameC->board[x][y] = i;
+						dir = 1;
+						btMove(gameC, &x, &y, dir);
+						break;
+					}
+				}
+				if (gameC->board[x][y] > gameC->bSize) { /*no more options for current cell*/
+					gameC->board[x][y] = 0;
+					dir = -1;
+					btMove(gameC, &x, &y, dir);
+					continue;
+				}
+			}
+			if (x==gameC-1 && y) { /*if the board is solved*/
+				counter++;
+				dir = -1;
+				btMove(gameC, &x, &y, dir);
+			}
+		}
+	}
+}
+
+/*	dir == 1 to go forward
+	dir == -1 to go backward
+	x is column
+	y is row					*/
+void btMove(gameData * game,int * x, int * y, int dir) {
+	if (dir == 1) {
+		if (x == game->bSize) { /*end of row*/
+				*x=1;
+				(*y)++;
+		}
+		else { /*move to next cell in row*/
+			(*x)++;
+		}
+	}
+	if (dir == -1) {
+		if (x == 1) { /*start of row*/
+			*x = game->bSize;
+			(*y)--;
+		}
+		else { /*move to previous cell in row*/
+			(*x)--;
+		}
+	}
 }
 
 
