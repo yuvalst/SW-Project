@@ -110,7 +110,7 @@ int checkValid(gameData * game, int x, int y, int z) {
 	int i, j, cStart, rStart;
 	int** board = game->board;
 	for (i = 0; i < game->bSize; i++) {
-		if ((board[i][y - 1] == z) || (board[x - 1][i] == z)) {
+		if ( ((board[i][y - 1] == z)&&(i!=x-1)) || ((board[x - 1][i] == z)&&(i!=y-1)) ) {
 			return 0;
 		}
 	}
