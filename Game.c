@@ -82,6 +82,7 @@ int ** initBoard(int bSize, int multi) { /*imported from hw3*/
 	return board;
 }
 
+
 void freeBoard(int** board){
 	free(board[0]);
 	free(board);
@@ -97,9 +98,89 @@ int ChangeCellsWithValTo(gameData * game, int num){
 		}
 	}
 }
+
+printRowSep(gameData * game) {
+	int i;
+	for (i = 0; i < 4 * game->bSize + game->n + 1; i++) {
+		printf("-");
+	}
+}
+
+int checkValid(gameData * game, int x, int y, int z) {
+	int i, j, cStart, rStart;
+	int** board = game->board;
+	for (i = 0; i < game->bSize; i++) {
+		if ((board[i][y - 1] == z) || (board[x - 1][i] == z)) {
+			return 0;
+		}
+	}
+	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
+	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
+	for (i = cStart; i < cStart + game->n; i++) {
+		for (j = rStart; j < rStart + game->m; j++) {
+			if (board[i][j] == z) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+void handleCellErrors(gameData * game, int x, int y, int prev, int z, int * err) {
+	if (game->board[x - 1][y - 1] == z) {
+		if (*err == 0) {
+			*err = 1;
+		}
+		if (game->board[x + game->bSize - 1][y - 1] == 0) { /*cell erroneous before change*/
+			addToNode(game, x - 1, y - 1, 2, 1);
+			game->board[x + game->bSize - 1][y - 1] = 2;
+			game->errors++;
+		}
+	}
+	if (game->board[x - 1][y - 1] == prev && game->board[x + game->bSize - 1][y-1] == 2) {
+		if (checkValid(game, x, y, prev) == 1) { /*no other cells caused the error*/
+			addToNode(game, x - 1, y - 1, 0, 1);
+			game->board[x + game->bSize - 1][y - 1] = 0;
+			game->errors--;
+		}
+	}
+}
+
+
 int checkErrors(gameData * game) {
 
 }
+
+/*use after changed the cells value in set command*/
+int checkSetErrors(gameData * game, int x, int y, int prev, int z) {
+	int i, j, err = 0, cStart, rStart;
+	if (z == prev) {
+		return 0;
+	}
+	for (i = 0; i < game->bSize; i++) {
+		handleCellErrors(game, i + 1, y, prev, z, &err);
+		handleCellErrors(game, x, i + 1, prev, z, &err);
+	}
+	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
+	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
+	for (i = cStart; i < cStart + game->n; i++) {
+		for (j = rStart; j < rStart + game->m; j++) {
+			handleCellErrors(game, i + 1, j + 1, prev, z, &err);
+		}
+	}
+	if (err == 1 && game->board[x + game->bSize - 1][y - 1] == 0) { /*cell wasn't erroneous and is now*/
+		addToNode(game, x, y, 2, 1);
+		game->board[x + game->bSize - 1][y - 1] = 2;
+		game->errors++;
+	}
+	else if (err == 0 && game->board[x + game->bSize - 1][y - 1] == 2) { /*cell was erroneous and isn't now*/
+		addToNode(game, x, y, 0, 1);
+		game->board[x + game->bSize - 1][y - 1] = 0;
+		game->errors--;
+	}
+	return 1;
+}
+
 
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
@@ -137,29 +218,6 @@ int checkFixed(gameData * game, int x, int y) {
 
 int validate(gameData * game);
 
-
-int checkValid(gameData * game, int x, int y, int z) {
-	int i, j, cStart, rStart;
-	int** board = game->board;
-	/*if (board[x - 1][y - 1] == z) { cell x, y already has value of z
-		return 1;
-	}*/
-	for (i = 0; i < game->bSize; i++) {
-		if ((board[i][y - 1] == z) || (board[x - 1][i] == z)) {
-			return 0;
-		}
-	}
-	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
-	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
-	for (i = cStart; i < cStart + game->n; i++) {
-		for (j = rStart; j < rStart + game->m; j++) {
-			if (board[i][j] == z) {
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
 
 
 int singleValue(gameData * gameC, int i, int j) {
@@ -216,10 +274,11 @@ int solve(gameData * game, char * path) {
 		printf(ERROR_FILE);
 		return 0;
 	}
-	newGame(game, 1); /*frees current game resources. changes mode to 1 (solve)*/
-	fscanf(gameF, "%d", &game->n);
 	fscanf(gameF, "%d", &game->m);
-	game->bSize = game->n*game->m;
+	fscanf(gameF, "%d", &game->n);
+	game->bSize = game->n * game->m;
+	newGame(game, 1); /*frees current game resources, builds new board according to bSize, changes mode to 1 (solve)*/
+	game->numEmpty = game->bSize * game->bSize;
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			fscanf(gameF, "%d%c", &cell, &c);
@@ -242,8 +301,11 @@ int edit(gameData * game, char* path){
 	FILE * gameF;
 	int i, j;
 	if (path == NULL) {
+		game->m = 3;
+		game->n = 3;
+		game->bSize = 9;
 		newGame(game, 2);
-		game->board = initBoard(game->bSize , 2);
+		game->numEmpty = game->bSize * game->bSize;
 	}
 	else {
 		gameF = fopen(path, "r");
@@ -251,22 +313,25 @@ int edit(gameData * game, char* path){
 			printf(ERROR_FILE2);
 			return 0;
 		}
-		newGame(game, 2);
-		fscanf(gameF, "%d", &game->n);
 		fscanf(gameF, "%d", &game->m);
+		fscanf(gameF, "%d", &game->n);
 		game->bSize = game->n * game->m;
-		game->board = initBoard(game->bSize , 2);
+		newGame(game, 2);
+		game->numEmpty = game->bSize * game->bSize;
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
 				fscanf(gameF, "%d", &game->board[i][j]);
+				if (game->board[i][j] != 0) {
+					game->numEmpty--;
+				}
 			}
 		}
 		fclose(gameF);
 	}
-
+	return 1;
 }
 
-int mark_errors(gameData * game, char ** cmdArr){
+int markErrors(gameData * game, char ** cmdArr){
 	int i;
 	if (game->mode != 1) {
 		printf(ERROR_INV_CMD);
@@ -290,6 +355,43 @@ int mark_errors(gameData * game, char ** cmdArr){
 	return 1;
 }
 
+void printBoard(gameData * game) { /*from hw3*/
+	int i, j;
+	for (j = 0; j < game->bSize; j++) {
+		if (j % game->m == 0) {
+			printRowSep(game);
+		}
+		for (i = 0; i < game->bSize; i++) {
+			if (i % game->n == 0) {
+				printf("|");
+			}
+			if (game->board[i][j] == 0) {
+				printf("    ");
+				continue;
+			}
+			printf(" ");
+			printf("%d", game->board[i][j]);
+			if (game->mode == 1) {
+				if (game->board[i + game->bSize][j] == 1) {
+					printf(".");
+				}
+				else if (game->board[i + game->bSize][j] == 2) {
+					printf("*");
+				}
+				else {
+					print(" ");
+				}
+			}
+			if (board[i + game->bSize][j] == 2){
+				printf(" %d* ", board[i][j]);
+			}
+		}
+		printf("|\n");
+	}
+	printf(ROWSEPARATOR);
+}
+
+
 int set(gameData * game, char ** cmdArr){
 	int x, y, z, prev;
 	if (game->mode != 1 && game->mode != 2) {
@@ -308,10 +410,11 @@ int set(gameData * game, char ** cmdArr){
 		printf(ERROR_FIXED);
 		return 0;
 	}
-	setList(game, cmdArr); /*clear all next moves and mark this "set" as current one*/
+	insertAtCurr(game, 1); /*clear all next moves and mark this "set" as current one*/
+	addToNode(game, x, y, z, 0);
 	game->board[x-1][y-1] = z;
-	if (z!=0) {
-		checkSetError(game, x, y, z); /*if current set caused an error mark the cells*/
+	checkSetErrors(game, x, y, prev, z); /*if current set caused/solved an error mark the cells accordingly and update curr node in list. also update errors field*/
+	if (z != 0) {
 		if (prev == 0) {
 			game->numEmpty--;
 		}
@@ -335,6 +438,7 @@ int set(gameData * game, char ** cmdArr){
 	}
 	return 1;
 }
+
 
 int validate(gameData * game) {
 	if(game->mode==0) { /*not in edit or solve mode*/
@@ -422,11 +526,13 @@ int generate(gameData * game, char ** cmdArr){
 			}
 			continue;
 		}
+		insertAtCurr(game, 2);
 		for (f = 0; f < y;) { /*find random cells to keep*/
 			i = (rand() % game->bSize);
 			j = (rand() % game->bSize);
 			if (game->board[i + game->bSize][j] != 3) {
 				game->board[i + game->bSize][j] = 3;
+				addToNode(game, i + 1, j + 1, game->board[i][j], 0);
 				f++;
 			}
 		}
@@ -443,9 +549,6 @@ int generate(gameData * game, char ** cmdArr){
 		game->numEmpty = (game->bSize * game->bSize) - y;
 		printBoard(game);
 		break;
-	}
-	if (res != 0) {
-		addList();
 	}
 	free(values);
 	return res;
@@ -485,7 +588,7 @@ int save(gameData * game, char * path) {
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			fprintf(gameF, "%d", game->board[i][j]);
-			if (game->mode == 2 || game->board[game->bSize + i][j]) {
+			if (game->mode == 2 || game->board[game->bSize + i][j] == 1) {
 				fprintf(gameF, ".");
 			}
 		}
@@ -555,8 +658,9 @@ int num_solutions(gameData * game){
 	return 1;
 }
 
+
 int autofill(gameData * game){
-	int i, j, z, val = 0;
+	int i, j, z, first = 1, val = 0;
 	gameData * gameC = NULL;
 	if(game->mode != 1) {
 		printf(ERROR_INV_CMD);
@@ -572,9 +676,13 @@ int autofill(gameData * game){
 			if (game->board[i][j] == 0) {
 				val = singleValue(gameC, i, j);
 				if (val != 0) {
+					if(first) {
+						first = 0;
+						insertAtCurr(game, 3);
+					}
+					addToNode(game, i + 1, j + 1, val, 0);
 					game->board[i][j] = val;
 					printf(AUTO_SET, i, j, val);
-					/*add the set to the command node in the list*/
 					game->numEmpty--;
 				}
 			}

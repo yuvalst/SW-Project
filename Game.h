@@ -8,6 +8,6 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-typedef struct GameData {} gameData;
+typedef struct GameData gameData;
 
 #endif /* GAME_H_ */
