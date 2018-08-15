@@ -25,6 +25,9 @@
 #define ERROR_CONTAINS_VAL "Error: cell already contains a value\n"
 #define HINT "Hint: set cell to %d\n"
 #define AUTO_SET "Cell <%d,%d> set to %d\n"
+#define NUM_OF_SOLS "Number of solutions: %d\n"
+#define GOOD_B "This is a good board!\n"
+#define MORE_THAN_1_SOL "The puzzle has more than 1 solution, try to edit it further\n"
 
 
 typedef struct GameData {
@@ -541,16 +544,15 @@ int num_solutions(gameData * game){
 		printf(ERROR_VALUES);
 		return 0;
 	}
-	printf("%d",exhaustiveBT(game));
 	numOsols =  exhaustiveBT(game);
-	printf("Number of solutions: %d\n",numOsols);
+	printf(NUM_OF_SOLS,numOsols);
 	if (numOsols == 1) {
-		printf("This is a good board!\n");
+		printf(GOOD_B);
 	}
 	else{
-		printf("The puzzle has more than 1 solution, try to edit it further\n");
+		printf(MORE_THAN_1_SOL);
 	}
-
+	return 1;
 }
 
 int autofill(gameData * game){
@@ -592,43 +594,41 @@ int exit(gameData * game, int x, int y, int z){
 }
 
 int exhaustiveBT(gameData * game){
-	int x, y, i, counter=0 ,dir=1;
+	int x = 1, y = 1, i, counter=0 ,dir=1;
 	gameData * gameC = NULL;
 	copyGame(gameC, game);
 	ChangeCellsWithValTo(gameC,1);
 
-	for (x = 1; x < gameC->bSize;) { /*x is column*/
-		for (y = 1; y < gameC->bSize;) { /*y is row*/
-			if (y==0) { /*finished to check all possibilities*/
-				return counter;
-			}
-			if (gameC->board[y][gameC->bSize+x] != 0) { /*cell is fixed*/
-				btMove(gameC, &x, &y, dir); /*move to next cell*/
-				continue;
-			}
-			else{
-				for (i = gameC->board[x][y]+1; i <= gameC->bSize; i++) { /*otherwise we check all valid values*/
-					if (checkValid(gameC, x, y, i)) { /*need to check if x and y are correct order*/
-						gameC->board[x][y] = i;
-						dir = 1;
-						btMove(gameC, &x, &y, dir);
-						break;
-					}
-				}
-				if (gameC->board[x][y] > gameC->bSize) { /*no more options for current cell*/
-					gameC->board[x][y] = 0;
-					dir = -1;
+	while(y!=0){
+
+		if (gameC->board[gameC->bSize+x][y] != 0) { /*cell is fixed*/
+			btMove(gameC, &x, &y, dir); /*move to next cell*/
+			continue;
+		}
+		else{
+			for (i = gameC->board[x][y]+1; i <= gameC->bSize; i++) { /*otherwise we check all valid values*/
+				if (checkValid(gameC, x, y, i)) { /*need to check if x and y are correct order*/
+					gameC->board[x][y] = i;
+					dir = 1;
 					btMove(gameC, &x, &y, dir);
-					continue;
+					break;
 				}
 			}
-			if (x==gameC-1 && y) { /*if the board is solved*/
-				counter++;
+			if (gameC->board[x][y] > gameC->bSize) { /*no more options for current cell*/
+				gameC->board[x][y] = 0;
 				dir = -1;
 				btMove(gameC, &x, &y, dir);
+				continue;
 			}
 		}
+		if (x==1 && y==gameC->bSize+1) { /*if the board is solved*/
+			counter++;
+			dir = -1;
+			btMove(gameC, &x, &y, dir);
+		}
 	}
+	/*finished to check all possibilities*/
+	return counter;
 }
 
 /*	dir == 1 to go forward
@@ -637,7 +637,7 @@ int exhaustiveBT(gameData * game){
 	y is row					*/
 void btMove(gameData * game,int * x, int * y, int dir) {
 	if (dir == 1) {
-		if (x == game->bSize) { /*end of row*/
+		if (*x == game->bSize) { /*end of row*/
 				*x=1;
 				(*y)++;
 		}
@@ -646,7 +646,7 @@ void btMove(gameData * game,int * x, int * y, int dir) {
 		}
 	}
 	if (dir == -1) {
-		if (x == 1) { /*start of row*/
+		if (*x == 1) { /*start of row*/
 			*x = game->bSize;
 			(*y)--;
 		}
