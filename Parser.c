@@ -67,7 +67,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 		if(checkToken(cmd) == 0) {
 			return 0;
 		}
-		mark_errors(game, cmd);
+		markErrors(game, cmd);
 	}
 	else if (strcmp(cmd, PRINT) == 0) {
 		printBoard(game);

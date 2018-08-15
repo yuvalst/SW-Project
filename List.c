@@ -10,51 +10,88 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include "Game.h"
 
 typedef struct Node {
-	int numOfMoves; /*each move consists of 4 ints*/
-	int * moves;
-	struct Node* next;
-	struct Node* prev;
+	int cmd;
+	int numOfChanges; /*number of cells changed by command - each change is represented by 4 ints*/
+	int numOfErrors;
+	int * changes;
+	int * errorChanges; /*for saving error changes if set created errors*/
+	struct Node * next;
+	struct Node * prev;
 } node;
 
 
 
 //Creates a new Node and returns pointer to it.
-node* createNode() {
-	node* newNode = (struct node*)malloc(sizeof(node));
-	/* build checking func*/
-	newNode->numOfMoves = NULL;
-	newNode->moves = NULL;
+node * createNode() {
+	node * newNode = (struct node*)malloc(sizeof(node));
+	/* assert*/
+	newNode->numOfChanges = 0;
+	newNode->numOfErrors = 0;
+	newNode->changes = NULL;
+	newNode->errorChanges = NULL;
 	newNode->prev = NULL;
 	newNode->next = NULL;
 	return newNode;
 }
 
-//Inserts a Node at head of doubly linked list
-void InsertAtHead(int x) {
-	struct Node* newNode = GetNewNode(x);
-	if(head == NULL) {
-		head = newNode;
-		return;
+/*call this function before changing the gameboard*/
+void addToNode(gameData * game, int x, int y, int z, int type) {
+	if (type == 0) { /*change in board cell*/
+		if (game->curr->changes == NULL){
+			game->curr->changes = (int *)malloc(4 * sizeof(int));
+			/* assert*/
+		}
+		else {
+			game->curr->changes = (int *)realloc(game->curr->changes, (game->curr->numOfChanges + 1) * 4 * sizeof(int));
+			/* assert*/
+		}
+		game->curr->changes[4 * game->curr->numOfChanges] = x;
+		game->curr->changes[4 * game->curr->numOfChanges + 1] = y;
+		if(game->curr->cmd == 2) { /*was generate cmd, ilp already changed board*/
+			game->curr->changes[4 * game->curr->numOfChanges + 2] = 0;
+		}
+		else { /*set or autofill*/
+			game->curr->changes[4 * game->curr->numOfChanges + 2] = game->board[x - 1][y - 1];
+		}
+		game->curr->changes[4 * game->curr->numOfChanges + 3] = z;
+		game->curr->numOfChanges++;
 	}
-	head->prev = newNode;
-	newNode->next = head;
-	head = newNode;
+	else { /*error created/solved*/
+		if (game->curr->errorChanges == NULL){
+			game->curr->errorChanges = (int *)malloc(4 * sizeof(int));
+			/* assert*/
+		}
+		else {
+			game->curr->errorChanges = (int *)realloc(game->curr->errorChanges, (game->curr->numOfErrors + 1) * 4 * sizeof(int));
+			/* assert*/
+		}
+		game->curr->errorChanges[4 * game->curr->numOfErrors] = x;
+		game->curr->errorChanges[4 * game->curr->numOfErrors + 1] = y;
+		game->curr->errorChanges[4 * game->curr->numOfErrors + 2] = game->board[x + game->bSize - 1][y - 1];
+		game->curr->errorChanges[4 * game->curr->numOfErrors + 3] = z;
+		game->curr->numOfErrors++;
+	}
 }
 
-//Inserts a Node at tail of Doubly linked list
-void InsertAtTail(int x) {
-	struct Node* temp = head;
-	struct Node* newNode = GetNewNode(x);
-	if(head == NULL) {
-		head = newNode;
+//Inserts a Node at head of doubly linked list
+void insertAtCurr(gameData * game, int cmd) {
+	struct Node* newNode = createNode();
+	newNode->cmd = cmd;
+	if(game->head == NULL) {
+		game->head = newNode;
+		game->curr = newNode;
 		return;
 	}
-	while(temp->next != NULL) temp = temp->next; // Go To last Node
-	temp->next = newNode;
-	newNode->prev = temp;
+	clearToEnd(game->curr->next);
+	game->curr->next = newNode;
+	newNode->prev = game->curr;
+	game->curr = newNode;
 }
+
+
 
 //Prints all the elements in linked list in forward traversal order
 void Print() {
