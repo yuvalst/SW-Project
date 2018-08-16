@@ -32,9 +32,9 @@
 #define GOOD_B "This is a good board!\n"
 #define MORE_THAN_1_SOL "The puzzle has more than 1 solution, try to edit it further\n"
 #define NO_UNDO "Error: no moves to undo\n"
-#define UNDO "Undo %d,%d: from %d to %d\n"
+#define UNDO "Undo %d,%d: from "
 #define NO_REDO "Error: no moves to redo\n"
-#define REDO "Redo %d,%d: from %d to %d\n"
+#define REDO "Redo %d,%d: from "
 
 
 
@@ -549,41 +549,97 @@ int generate(gameData * game, char ** cmdArr){
 }
 
 int undo(gameData * game){
-	int x, y, prev, z, i;
+	int x, y, prevZ, z, i; /*z is current value, prevZ is the one we are changing to*/
 	if (game->mode != 1 || game->mode != 2) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (game->head == NULL || game->head->prev == NULL) {
+	if (game->head == NULL || game->curr->prev == NULL) { /*cmd list is empty or we are the at head*/
 		printf(NO_UNDO);
 		return 0;
 	}
 	for (i = 0; i < game->curr->numOfChanges; i++) {
 		x = game->curr->changes[4 * i];
 		y = game->curr->changes[(4 * i) + 1];
-		prev = game->curr->changes[(4 * i) + 2];
-		game->board[x - 1][y - 1] = prev;
+		prevZ = game->curr->changes[(4 * i) + 2];
+		game->board[x - 1][y - 1] = prevZ;
 	}
 	for (i = 0; i < game->curr->numOfErrors; i++) {
 		x = game->curr->errorChanges[4 * i];
 		y = game->curr->errorChanges[(4 * i) + 1];
-		prev = game->curr->errorChanges[(4 * i) + 2];
-		game->board[x + game->bSize - 1][y - 1] = prev;
+		prevZ = game->curr->errorChanges[(4 * i) + 2];
+		game->board[x + game->bSize - 1][y - 1] = prevZ;
 	}
 	printBoard(game);
 	for (i = 0; i < game->curr->numOfChanges; i++) {
 		x = game->curr->changes[4 * i];
 		y = game->curr->changes[(4 * i) + 1];
-		prev = game->curr->changes[(4 * i) + 2];
+		prevZ = game->curr->changes[(4 * i) + 2];
 		z = game->curr->changes[(4 * i) + 3];
-		printf(UNDO, x, y, prev, z);
+		printf(UNDO, x, y);
+		if (prevZ == 0) {
+			printf("_");
+		}
+		else {
+			printf("%d", prevZ);
+		}
+		printf(" to ");
+		if (z == 0) {
+			printf("_\n");
+		}
+		else {
+			printf("%d\n", z);
+		}
 	}
 	game->curr = game->curr->prev;
 	return 1;
 }
 
-int redo(gameData * game, int x, int y, int z){
-
+int redo(gameData * game){
+	int x, y, z, nextZ, i;
+	if (game->mode != 1 || game->mode != 2) {
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	if (game->head == NULL || game->curr->next == NULL) {
+		printf(NO_REDO);
+		return 0;
+	}
+	game->curr = game->curr->next;
+	for (i = 0; i < game->curr->numOfChanges; i++) {
+		x = game->curr->changes[4 * i];
+		y = game->curr->changes[(4 * i) + 1];
+		nextZ = game->curr->changes[(4 * i) + 3];
+		game->board[x - 1][y - 1] = nextZ;
+	}
+	for (i = 0; i < game->curr->numOfErrors; i++) {
+		x = game->curr->errorChanges[4 * i];
+		y = game->curr->errorChanges[(4 * i) + 1];
+		nextZ = game->curr->errorChanges[(4 * i) + 3];
+		game->board[x + game->bSize - 1][y - 1] = nextZ;
+	}
+	printBoard(game);
+	for (i = 0; i < game->curr->numOfChanges; i++) {
+		x = game->curr->changes[4 * i];
+		y = game->curr->changes[(4 * i) + 1];
+		z = game->curr->changes[(4 * i) + 2];
+		nextZ = game->curr->changes[(4 * i) + 3];
+		printf(REDO, x, y);
+		if (z == 0) {
+			printf("_");
+		}
+		else {
+			printf("%d", z);
+		}
+		printf(" to ");
+		if (nextZ == 0) {
+			printf("_\n");
+		}
+		else {
+			printf("%d\n", nextZ);
+		}
+	}
+	return 1;
 }
 
 int save(gameData * game, char * path) {
