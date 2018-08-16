@@ -24,10 +24,8 @@
 
 
 
-
-node * createNode();
 void addToNode(gameData * game, int x, int y, int z, int type);
 void insertAtCurr(gameData * game, int cmd);
-
+void freeList(gameData * game);
 
 #endif /* LIST_H_ */

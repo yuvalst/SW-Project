@@ -69,6 +69,18 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	}
 }
 
+void clearToEnd(node * head) {
+	node * temp = NULL;
+	while (head != NULL) {
+		temp = head->next;
+		free(head->changes);
+		if (head->errorChanges != NULL) {
+			free(head->errorChanges);
+		}
+		head = temp;
+	}
+}
+
 //Inserts a Node at head of doubly linked list
 void insertAtCurr(gameData * game, int cmd) {
 	struct Node* newNode = createNode();
@@ -86,17 +98,12 @@ void insertAtCurr(gameData * game, int cmd) {
 
 
 
-/*Prints all the elements in linked list in forward traversal order
-void Print() {
-	struct Node* temp = head;
-	printf("Forward: ");
-	while(temp != NULL) {
-		printf("%d ",temp->data);
-		temp = temp->next;
-	}
-	printf("\n");
+
+void freeList(gameData * game) {
+	clearToEnd(game->head);
 }
 
+/*
 Prints all elements in linked list in reverse traversal order.
 void ReversePrint() {
 	struct Node* temp = head;

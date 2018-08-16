@@ -35,6 +35,8 @@
 #define UNDO "Undo %d,%d: from "
 #define NO_REDO "Error: no moves to redo\n"
 #define REDO "Redo %d,%d: from "
+#define RESET "Board reset\n"
+#define EXIT "Exiting...\n"
 
 
 
@@ -55,15 +57,14 @@ gameData * initGame() {
 	return game;
 }
 
-void freeBoard(int ** board){
-	free(board[0]);
-	free(board);
+void freeBoard(gameData * game){
+	free(game->board[0]);
+	free(game->board);
 }
 
-gameData * newGame(gameData * game, int mode) {
-	if (game->board) {
-		freeBoard(game->board);
-	}
+void freeGame(gameData* game) {
+	freeBoard(game);
+	freeList(game);
 }
 
 int ** initBoard(int bSize, int multi) { /*imported from hw3*/
@@ -82,6 +83,40 @@ int ** initBoard(int bSize, int multi) { /*imported from hw3*/
 	return board;
 }
 
+
+void copyGame(gameData * gameC, gameData * game) {
+	int i, j;
+	gameC = (gameData *)malloc(sizeof(gameData));
+	gameC->board = initBoard(game->bSize, 2);
+	for (i = 0; i < game->bSize * 2; i++) {
+		for (j = 0; j < game->bSize; j++) {
+			gameC->board[i][j] = game->board[i][j];
+		}
+	}
+	gameC->mode = game->mode;
+	gameC->mark = game->mark;
+	gameC->errors = game->errors;
+	gameC->m = game->m;
+	gameC->n = game->n;
+	gameC->bSize = game->bSize;
+	gameC->numEmpty = game->numEmpty;
+	gameC->head = NULL;
+	gameC->curr = NULL;
+}
+
+
+
+void newGame(gameData * game, int mode) {
+	if (game->board != NULL) {
+		freeGame(game); /*free board and list*/
+	}
+	if (mode != 0) {
+		game->board = initBoard(game->bSize, 2);
+	}
+	game->mode = mode;
+	game->errors = 0;
+	game->numEmpty = game->bSize * game->bSize;
+}
 
 void ChangeCellsWithValTo(gameData * game, int num){
 	int i,j;
@@ -275,7 +310,6 @@ int solve(gameData * game, char * path) {
 	fscanf(gameF, "%d", &(game->n));
 	game->bSize = game->m * game->n;
 	newGame(game, 1); /*frees current game resources, builds new board according to bSize, changes mode to 1 (solve)*/
-	game->numEmpty = game->bSize * game->bSize;
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			fscanf(gameF, "%d%c", &cell, &c);
@@ -302,7 +336,6 @@ int edit(gameData * game, char* path){
 		game->n = 3;
 		game->bSize = 9;
 		newGame(game, 2);
-		game->numEmpty = game->bSize * game->bSize;
 	}
 	else {
 		gameF = fopen(path, "r");
@@ -314,7 +347,6 @@ int edit(gameData * game, char* path){
 		fscanf(gameF, "%d", &game->n);
 		game->bSize = game->m * game->n;
 		newGame(game, 2);
-		game->numEmpty = game->bSize * game->bSize;
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
 				fscanf(gameF, "%d", &game->board[i][j]);
@@ -548,7 +580,7 @@ int generate(gameData * game, char ** cmdArr){
 	return res;
 }
 
-int undo(gameData * game){
+int undo(gameData * game, int p){ /*p tells us if prints are needed*/
 	int x, y, prevZ, z, i; /*z is current value, prevZ is the one we are changing to*/
 	if (game->mode != 1 || game->mode != 2) {
 		printf(ERROR_INV_CMD);
@@ -570,25 +602,27 @@ int undo(gameData * game){
 		prevZ = game->curr->errorChanges[(4 * i) + 2];
 		game->board[x + game->bSize - 1][y - 1] = prevZ;
 	}
-	printBoard(game);
-	for (i = 0; i < game->curr->numOfChanges; i++) {
-		x = game->curr->changes[4 * i];
-		y = game->curr->changes[(4 * i) + 1];
-		prevZ = game->curr->changes[(4 * i) + 2];
-		z = game->curr->changes[(4 * i) + 3];
-		printf(UNDO, x, y);
-		if (prevZ == 0) {
-			printf("_");
-		}
-		else {
-			printf("%d", prevZ);
-		}
-		printf(" to ");
-		if (z == 0) {
-			printf("_\n");
-		}
-		else {
-			printf("%d\n", z);
+	if (p) {
+		printBoard(game);
+		for (i = 0; i < game->curr->numOfChanges; i++) {
+			x = game->curr->changes[4 * i];
+			y = game->curr->changes[(4 * i) + 1];
+			prevZ = game->curr->changes[(4 * i) + 2];
+			z = game->curr->changes[(4 * i) + 3];
+			printf(UNDO, x, y);
+			if (prevZ == 0) {
+				printf("_");
+			}
+			else {
+				printf("%d", prevZ);
+			}
+			printf(" to ");
+			if (z == 0) {
+				printf("_\n");
+			}
+			else {
+				printf("%d\n", z);
+			}
 		}
 	}
 	game->curr = game->curr->prev;
@@ -717,7 +751,7 @@ int hint(gameData * game, char ** cmdArr){
 	return 1;
 }
 
-int num_solutions(gameData * game){
+int numSols(gameData * game){
 	int numOsols;
 	if (game->mode == 0) {
 			printf(ERROR_INV_CMD);
@@ -773,12 +807,23 @@ int autofill(gameData * game){
 	return 1;
 }
 
-int reset(gameData * game, int x, int y, int z){
-
+int reset(gameData * game){
+	if(game->mode != 1 || game->mode != 2) {
+		printf(ERROR_INV_CMD);
+		return 0;
+	}
+	while (game->curr != game->head) {
+		undo(game, 0); /*undo without print*/
+	}
+	freeList(game);
+	printf(RESET);
+	return 1;
 }
 
-int exit(gameData * game, int x, int y, int z){
-
+void exitGame(gameData * game){
+	freeGame(game);
+	printf(EXIT);
+	exit(0);
 }
 
 int exhaustiveBT(gameData * game){
