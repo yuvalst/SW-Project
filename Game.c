@@ -28,6 +28,8 @@
 #define NUM_OF_SOLS "Number of solutions: %d\n"
 #define GOOD_B "This is a good board!\n"
 #define MORE_THAN_1_SOL "The puzzle has more than 1 solution, try to edit it further\n"
+#define VAL_PASSED "Validation passed: board is solvable\n"
+#define VAL_FAILED "Validation failed: board is unsolvable\n"
 
 
 typedef struct GameData {
@@ -446,15 +448,15 @@ int validate(gameData * game) {
 		return 0;
 	}
 	else if (game->errors!=0) {
-		printf("Validation passed: board is solvable\n");
+		printf(ERROR_VALUES);
 		return 0;
 	}
 	else if (ilpSolver(game)) {
-		printf("Validation passed: board is solvable\n");
+		printf(VAL_PASSED);
 		return 1;
 	}
 	else{
-		printf("Validation failed: board is unsolvable\n");
+		printf(VAL_FAILED);
 		return 0;
 	}
 }
