@@ -975,7 +975,7 @@ int autofill(gameData * game) {
 					}
 					addToNode(game, i + 1, j + 1, val, 0);
 					game->board[i][j] = val;
-					printf(AUTO_SET, i, j, val);
+					printf(AUTO_SET, i + 1, j + 1, val);
 					game->numEmpty--;
 				}
 			}
