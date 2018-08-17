@@ -593,6 +593,9 @@ void printBoard(gameData * game) {
 				if ((game->mode == 1 && game->mark == 1) || game->mode == 2) {
 					printf("*");
 				}
+				else if (game->mark == 0) {
+					printf(" ");
+				}
 			}
 			else {
 				printf(" ");
