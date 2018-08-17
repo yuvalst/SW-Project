@@ -120,6 +120,7 @@ void newGame(gameData * game, int mode) {
 	game->mode = mode;
 	game->errors = 0;
 	game->numEmpty = game->bSize * game->bSize;
+	game->curr = game->head;
 }
 
 void ChangeCellsWithValTo(gameData * game, int num){
@@ -166,25 +167,6 @@ int checkValid(gameData * game, int x, int y, int z) {
 	return 1;
 }
 
-void handleCellErrors(gameData * game, int x, int y, int prev, int z, int * err) {
-	if (game->board[x - 1][y - 1] == z) {
-		if (*err == 0) {
-			*err = 1;
-		}
-		if (game->board[x + game->bSize - 1][y - 1] == 0) { /*cell erroneous before change*/
-			addToNode(game, x, y, 2, 1);
-			game->board[x + game->bSize - 1][y - 1] = 2;
-			game->errors++;
-		}
-	}
-	if (game->board[x - 1][y - 1] == prev && game->board[x + game->bSize - 1][y-1] == 2) {
-		if (checkValid(game, x, y, prev) == 1) { /*no other cells caused the error*/
-			addToNode(game, x, y, 0, 1);
-			game->board[x + game->bSize - 1][y - 1] = 0;
-			game->errors--;
-		}
-	}
-}
 
 
 void updateErrors(gameData * game) {
@@ -259,6 +241,26 @@ void updateErrors(gameData * game) {
 	game->errors = errors;
 	free(rowArr);
 	free(colArr);
+}
+
+void handleCellErrors(gameData * game, int x, int y, int prev, int z, int * err) {
+	if (z != 0 && game->board[x - 1][y - 1] == z) {
+		if (*err == 0) {
+			*err = 1;
+		}
+		if (game->board[x + game->bSize - 1][y - 1] == 0) { /*cell wasn't erroneous before change*/
+			addToNode(game, x, y, 2, 1);
+			game->board[x + game->bSize - 1][y - 1] = 2;
+			game->errors++;
+		}
+	}
+	if (prev != 0 && game->board[x - 1][y - 1] == prev && game->board[x + game->bSize - 1][y-1] == 2) {
+		if (checkValid(game, x, y, prev) == 1) { /*no other cells caused the error*/
+			addToNode(game, x, y, 0, 1);
+			game->board[x + game->bSize - 1][y - 1] = 0;
+			game->errors--;
+		}
+	}
 }
 
 /*use after changed the cells value in set command*/
@@ -483,7 +485,9 @@ int solve(gameData * game, char * path) {
 	fscanf(gameF, "%d", &(game->n));
 	game->bSize = game->m * game->n;
 	newGame(game, 1); /*frees current game resources, builds new board according to bSize, changes mode to 1 (solve)*/
-	insertAtCurr(game, 2); /*like generate*/
+	if (game->head == NULL) {
+		insertAtCurr(game, 2); /*dummy head node*/
+	}
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			fscanf(gameF, "%d%c", &cell, &c);
@@ -511,7 +515,9 @@ int edit(gameData * game, char* path) {
 		game->n = 3;
 		game->bSize = 9;
 		newGame(game, 2);
-		insertAtCurr(game, 2); /*dummy head node*/
+		if (game->head == NULL) {
+			insertAtCurr(game, 2); /*dummy head node*/
+		}
 	}
 	else {
 		gameF = fopen(path, "r");
@@ -523,7 +529,9 @@ int edit(gameData * game, char* path) {
 		fscanf(gameF, "%d", &game->n);
 		game->bSize = game->m * game->n;
 		newGame(game, 2);
-		insertAtCurr(game, 2); /*dummy head node*/
+		if (game->head == NULL) {
+			insertAtCurr(game, 2); /*dummy head node*/
+		}
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
 				fscanf(gameF, "%d%c", &game->board[i][j], &c);
@@ -970,7 +978,7 @@ int autofill(gameData * game) {
 			if (game->board[i][j] == 0) {
 				val = singleValue(gameC, i, j);
 				if (val != 0) {
-					if(first) {
+					if (first) {
 						first = 0;
 						insertAtCurr(game, 3);
 					}

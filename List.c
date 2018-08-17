@@ -82,7 +82,7 @@ void clearToEnd(node ** head) {
 			free(tail->errorChanges);
 			tail->errorChanges = NULL;
 		}
-		free(&tail);
+		free(tail);
 		tail = temp;
 	}
 	*head = NULL;
@@ -107,7 +107,9 @@ void insertAtCurr(gameData * game, int cmd) {
 
 
 void freeList(gameData * game) {
-	clearToEnd(&game->head->next);
+	if (game->head != NULL) {
+		clearToEnd(&game->head->next);
+	}
 }
 
 /*
