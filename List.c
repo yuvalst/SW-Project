@@ -10,17 +10,10 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include "Game.h"
+#include "List.h"
 
-typedef struct Node {
-	int cmd;
-	int numOfChanges; /*number of cells changed by command - each change is represented by 4 ints*/
-	int numOfErrors;
-	int * changes;
-	int * errorChanges; /*for saving error changes if set created errors*/
-	struct Node * next;
-	struct Node * prev;
-} node;
+
+
 
 
 
@@ -49,14 +42,14 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 			/* assert*/
 		}
 		game->curr->changes[4 * game->curr->numOfChanges] = x;
-		game->curr->changes[4 * game->curr->numOfChanges + 1] = y;
+		game->curr->changes[(4 * game->curr->numOfChanges) + 1] = y;
 		if(game->curr->cmd == 2) { /*was generate cmd, ilp already changed board*/
-			game->curr->changes[4 * game->curr->numOfChanges + 2] = 0;
+			game->curr->changes[(4 * game->curr->numOfChanges) + 2] = 0;
 		}
 		else { /*set or autofill*/
-			game->curr->changes[4 * game->curr->numOfChanges + 2] = game->board[x - 1][y - 1];
+			game->curr->changes[(4 * game->curr->numOfChanges) + 2] = game->board[x - 1][y - 1];
 		}
-		game->curr->changes[4 * game->curr->numOfChanges + 3] = z;
+		game->curr->changes[(4 * game->curr->numOfChanges) + 3] = z;
 		game->curr->numOfChanges++;
 	}
 	else { /*error created/solved*/
@@ -69,10 +62,22 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 			/* assert*/
 		}
 		game->curr->errorChanges[4 * game->curr->numOfErrors] = x;
-		game->curr->errorChanges[4 * game->curr->numOfErrors + 1] = y;
-		game->curr->errorChanges[4 * game->curr->numOfErrors + 2] = game->board[x + game->bSize - 1][y - 1];
-		game->curr->errorChanges[4 * game->curr->numOfErrors + 3] = z;
+		game->curr->errorChanges[(4 * game->curr->numOfErrors) + 1] = y;
+		game->curr->errorChanges[(4 * game->curr->numOfErrors) + 2] = game->board[x + game->bSize - 1][y - 1];
+		game->curr->errorChanges[(4 * game->curr->numOfErrors) + 3] = z;
 		game->curr->numOfErrors++;
+	}
+}
+
+void clearToEnd(node * head) {
+	node * temp = NULL;
+	while (head != NULL) {
+		temp = head->next;
+		free(head->changes);
+		if (head->errorChanges != NULL) {
+			free(head->errorChanges);
+		}
+		head = temp;
 	}
 }
 
@@ -93,18 +98,13 @@ void insertAtCurr(gameData * game, int cmd) {
 
 
 
-//Prints all the elements in linked list in forward traversal order
-void Print() {
-	struct Node* temp = head;
-	printf("Forward: ");
-	while(temp != NULL) {
-		printf("%d ",temp->data);
-		temp = temp->next;
-	}
-	printf("\n");
+
+void freeList(gameData * game) {
+	clearToEnd(game->head);
 }
 
-//Prints all elements in linked list in reverse traversal order.
+/*
+Prints all elements in linked list in reverse traversal order.
 void ReversePrint() {
 	struct Node* temp = head;
 	if(temp == NULL) return; // empty list, exit
@@ -120,4 +120,4 @@ void ReversePrint() {
 	}
 	printf("\n");
 }
-
+*/
