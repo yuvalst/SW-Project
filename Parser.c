@@ -39,7 +39,7 @@ int checkToken(char * cmd){
 
 int getCommand(gameData * game, char ** cmdArr) {
 	char input [cmdLen] = {0};
-	char *cmd;
+	char * cmd;
 	int i;
 	/*checkEOF = */
 	fgets(input, cmdLen, stdin);
@@ -67,7 +67,8 @@ int getCommand(gameData * game, char ** cmdArr) {
 		if(checkToken(cmd) == 0) {
 			return 0;
 		}
-		markErrors(game, cmd);
+		cmdArr[0] = cmd;
+		markErrors(game, cmdArr);
 	}
 	else if (strcmp(cmd, PRINT) == 0) {
 		printBoard(game);
@@ -96,7 +97,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 		generate(game, cmdArr);
 	}
 	else if (strcmp(cmd, UNDO) == 0) {
-		undo(game);
+		undo(game, 1);
 	}
 	else if (strcmp(cmd, REDO) == 0) {
 		redo(game);
@@ -122,7 +123,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 		numSols(game);
 	}
 	else if (strcmp(cmd, AUTO) == 0) {
-		autoFill(game);
+		autofill(game);
 	}
 	else if (strcmp(cmd, RESET) == 0) {
 		reset(game);

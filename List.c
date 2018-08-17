@@ -17,7 +17,7 @@
 
 
 
-//Creates a new Node and returns pointer to it.
+/*Creates a new Node and returns pointer to it*/
 node * createNode() {
 	node * newNode = (struct node*)malloc(sizeof(node));
 	/* assert*/
@@ -73,7 +73,9 @@ void clearToEnd(node * head) {
 	node * temp = NULL;
 	while (head != NULL) {
 		temp = head->next;
-		free(head->changes);
+		if (head->changes != NULL) {
+			free(head->changes);
+		}
 		if (head->errorChanges != NULL) {
 			free(head->errorChanges);
 		}
@@ -81,9 +83,9 @@ void clearToEnd(node * head) {
 	}
 }
 
-//Inserts a Node at head of doubly linked list
+/*Inserts a Node at head of doubly linked list*/
 void insertAtCurr(gameData * game, int cmd) {
-	struct Node* newNode = createNode();
+	struct node * newNode = createNode();
 	newNode->cmd = cmd;
 	if(game->head == NULL) {
 		game->head = newNode;

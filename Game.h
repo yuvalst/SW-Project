@@ -29,6 +29,20 @@ typedef struct gameData {
 
 
 gameData * initGame();
-
+int solve(gameData * game, char * path);
+int edit(gameData * game, char* path);
+int markErrors(gameData * game, char ** cmdArr);
+void printBoard(gameData * game);
+int set(gameData * game, char ** cmdArr);
+int validate(gameData * game);
+int generate(gameData * game, char ** cmdArr);
+int undo(gameData * game, int p);
+int redo(gameData * game);
+int save(gameData * game, char * path);
+int hint(gameData * game, char ** cmdArr);
+int numSols(gameData * game);
+int autofill(gameData * game);
+int reset(gameData * game);
+void exitGame(gameData * game);
 
 #endif /* GAME_H_ */
