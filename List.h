@@ -9,7 +9,7 @@
 #define LIST_H_
 
 
-
+#include "Game.h"
 
 
  struct node {
