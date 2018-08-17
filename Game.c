@@ -185,13 +185,83 @@ void handleCellErrors(gameData * game, int x, int y, int prev, int z, int * err)
 }
 
 
-int checkErrors(gameData * game) {
-	game->mark = game->mark + 0;
-	return 0;
+int updateErrors(gameData * game) {
+	int** rowArr = (int**)calloc(game->bSize +1 ,sizeof(int*));
+	int** colArr = (int**)calloc(game->bSize +1 ,sizeof(int*));
+	/*2 assert*/
+	int i,j,rowVal,colVal,errors = 0,blockJ,blockI;
+	for (i = 0; i < game->bSize; ++i) {  /*row and col check*/
+		for (j = 0; j < game->bSize; ++j) {
+			/*might need to create function inside @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+			rowVal = game->board[j][i];
+			colVal = game->board[i][j];
+			if(rowArr[rowVal]!=NULL){ /*row check by value*/
+				if (rowArr[rowVal]==0) {
+					rowArr[rowVal]=2;
+					errors+=1;
+				}
+				if (game->board[j+game->bSize][i]==0) {
+					game->board[j+game->bSize][i]=2;
+					errors+=1;
+				}
+			}
+
+			else if (colVal != 0) {
+				rowArr[colVal] = &game->board[i+game->bSize][j];
+			}
+
+			if(colArr[colVal]!=NULL){
+				if (colArr[colVal]==0) {
+					colArr[colVal]=2;
+					errors+=1;
+				}
+				if (game->board[i+game->bSize][j]==0) {
+					game->board[i+game->bSize][j]=2;
+					errors+=1;
+				}
+			}
+			else if (colVal != 0) {
+				colArr[colVal] = &game->board[i+game->bSize][j];
+			}
+		}
+		for (j = 0; j < game->bSize; ++j) {
+			rowArr[j] = NULL;
+			colArr[j] = NULL;
+		}
+	}
+
+	for (blockI = 0; blockI < game->m; blockI++) {
+		for (blockJ = 0; blockJ < game->n; blockJ++) {
+			for (i = blockI*game->n; i < (blockI+1)*game->n; i++) {
+				for (j = blockJ*game->m; j < (blockJ+1)*game->m; j++) {
+					colVal = game->board[i][j];
+					if(colArr[colVal]!=NULL){
+						if (colArr[colVal]==0) {
+							colArr[colVal]=2;
+							errors+=1;
+						}
+						if (game->board[i+game->bSize][j]==0) {
+							game->board[i+game->bSize][j]=2;
+							errors+=1;
+						}
+					}
+					else if (colVal != 0) {
+						colArr[colVal] = &game->board[i+game->bSize][j];
+					}
+				}
+			}
+			for (j = 0; j < game->bSize; ++j) {
+				colArr[j] = NULL;
+			}
+		}
+	}
+	game->errors = errors;
+	free(rowArr);
+	free(colArr);
 }
 
 /*use after changed the cells value in set command*/
-int checkSetErrors(gameData * game, int x, int y, int prev, int z) {
+int updateSetErrors(gameData * game, int x, int y, int prev, int z) {
 	int i, j, err = 0, cStart, rStart;
 	if (z == prev) {
 		return 0;
@@ -341,36 +411,34 @@ void btMove(gameData * game,int * x, int * y, int dir) {
 
 int exhaustiveBT(gameData * game){
 	int x = 1, y = 1, i, counter=0 ,dir=1;
-	gameData * gameC = NULL;
-	copyGame(&gameC, game);
-	ChangeCellsWithValTo(gameC,1);
+	ChangeCellsWithValTo(game,1);
 
 	while(y!=0){
 
-		if (gameC->board[gameC->bSize+x][y] != 0) { /*cell is fixed*/
-			btMove(gameC, &x, &y, dir); /*move to next cell*/
+		if (game->board[game->bSize+x][y] != 0) { /*cell is fixed*/
+			btMove(game, &x, &y, dir); /*move to next cell*/
 			continue;
 		}
 		else{
-			for (i = gameC->board[x][y]+1; i <= gameC->bSize; i++) { /*otherwise we check all valid values*/
-				if (checkValid(gameC, x, y, i)) { /*need to check if x and y are correct order*/
-					gameC->board[x][y] = i;
+			for (i = game->board[x][y]+1; i <= game->bSize; i++) { /*otherwise we check all valid values*/
+				if (checkValid(game, x, y, i)) { /*need to check if x and y are correct order*/
+					game->board[x][y] = i;
 					dir = 1;
-					btMove(gameC, &x, &y, dir);
+					btMove(game, &x, &y, dir);
 					break;
 				}
 			}
-			if (gameC->board[x][y] > gameC->bSize) { /*no more options for current cell*/
-				gameC->board[x][y] = 0;
+			if (game->board[x][y] > game->bSize) { /*no more options for current cell*/
+				game->board[x][y] = 0;
 				dir = -1;
-				btMove(gameC, &x, &y, dir);
+				btMove(game, &x, &y, dir);
 				continue;
 			}
 		}
-		if (x==1 && y==gameC->bSize+1) { /*if the board is solved*/
+		if (x==1 && y==game->bSize+1) { /*if the board is solved*/
 			counter++;
 			dir = -1;
-			btMove(gameC, &x, &y, dir);
+			btMove(game, &x, &y, dir);
 		}
 	}
 	/*finished to check all possibilities*/
@@ -406,7 +474,7 @@ int solve(gameData * game, char * path) {
 		}
 	}
 	fclose(gameF);
-	checkErrors(game);
+	updateErrors(game);
 	return 1;
 }
 
@@ -440,6 +508,7 @@ int edit(gameData * game, char* path) {
 				}
 			}
 		}
+		updateErrors(game);
 		fclose(gameF);
 	}
 	return 1;
@@ -525,7 +594,7 @@ int set(gameData * game, char ** cmdArr) {
 	insertAtCurr(game, 1); /*clear all next moves and mark this "set" as current one*/
 	addToNode(game, x, y, z, 0);
 	game->board[x-1][y-1] = z;
-	checkSetErrors(game, x, y, prev, z); /*if current set caused/solved an error mark the cells accordingly and update curr node in list. also update errors field*/
+	updateSetErrors(game, x, y, prev, z); /*if current set caused/solved an error mark the cells accordingly and update curr node in list. also update errors field*/
 	if (z != 0) {
 		if (prev == 0) {
 			game->numEmpty--;
@@ -553,6 +622,7 @@ int set(gameData * game, char ** cmdArr) {
 
 
 int validate(gameData * game) {
+	gameData * gameC = NULL;
 	if(game->mode==0) { /*not in edit or solve mode*/
 		printf(ERROR_INV_CMD);
 		return 0;
@@ -562,7 +632,8 @@ int validate(gameData * game) {
 
 		return 0;
 	}
-	else if (ilpSolver(game)) {
+	copyGame(&gameC, game);
+	if (ilpSolver(gameC)) {
 		printf(VAL_PASSED);
 		return 1;
 	}
@@ -841,6 +912,7 @@ int hint(gameData * game, char ** cmdArr){
 
 int numSols(gameData * game) {
 	int numOsols;
+	gameData * gameC = NULL;
 	if (game->mode == 0) {
 			printf(ERROR_INV_CMD);
 			return 0;
@@ -849,7 +921,8 @@ int numSols(gameData * game) {
 		printf(ERROR_VALUES);
 		return 0;
 	}
-	numOsols =  exhaustiveBT(game);
+	copyGame(&gameC, game);
+	numOsols =  exhaustiveBT(gameC);
 	printf(NUM_OF_SOLS,numOsols);
 	if (numOsols == 1) {
 		printf(GOOD_B);
