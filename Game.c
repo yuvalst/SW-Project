@@ -330,6 +330,20 @@ int checkFixed(gameData * game, int x, int y) {
 	return 0;
 }
 
+int checkIfSolved(gameData * game) {
+	if (game->numEmpty == 0 && game->mode == 1) {
+		if (!validate(game, 0)) {
+			printf(ERROR_SOL);
+			return 0;
+		}
+		else {
+			printf(PUZ_SOLVED);
+			newGame(game, 0); /*init mode and new game*/
+			return 1;
+		}
+	}
+	return 0;
+}
 
 int validate(gameData * game, int p);
 
@@ -614,17 +628,7 @@ int set(gameData * game, char ** cmdArr) {
 		}
 	}
 	printBoard(game);
-	if (game->numEmpty == 0 && game->mode == 1) {
-		if (!validate(game, 0)) {
-			printf(ERROR_SOL);
-			return 0;
-		}
-		else {
-			printf(PUZ_SOLVED);
-			newGame(game, 0); /*init mode and new game*/
-			return 1;
-		}
-	}
+	checkIfSolved(game);
 	return 1;
 }
 
@@ -979,17 +983,7 @@ int autofill(gameData * game) {
 	}
 	printBoard(game);
 	freeGame(gameC);
-	if (game->numEmpty == 0) {
-		if (!validate(game, 0)) {
-			printf(ERROR_SOL);
-			return 0;
-		}
-		else {
-			printf(PUZ_SOLVED);
-			newGame(game, 0); /*init mode and new game*/
-			return 1;
-		}
-	}
+	checkIfSolved(game);
 	return 1;
 }
 
