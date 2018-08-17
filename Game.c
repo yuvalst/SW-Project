@@ -903,7 +903,8 @@ int reset(gameData * game) {
 	while (game->curr != game->head) {
 		undo(game, 0); /*undo without print*/
 	}
-	freeList(game);
+	clearToEnd(game->head->next);
+	game->curr = game->head;
 	printf(RESET);
 	return 1;
 }
