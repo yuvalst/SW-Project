@@ -33,6 +33,7 @@
 #define MORE_THAN_1_SOL "The puzzle has more than 1 solution, try to edit it further\n"
 #define VAL_PASSED "Validation passed: board is solvable\n"
 #define VAL_FAILED "Validation failed: board is unsolvable\n"
+#define SAVED "Saved to: %s\n"
 #define NO_UNDO "Error: no moves to undo\n"
 #define UNDO "Undo %d,%d: from "
 #define NO_REDO "Error: no moves to redo\n"
@@ -185,7 +186,7 @@ void handleCellErrors(gameData * game, int x, int y, int prev, int z, int * err)
 }
 
 
-int updateErrors(gameData * game) {
+void updateErrors(gameData * game) {
 	int** rowArr = (int**)calloc(game->bSize +1 ,sizeof(int*));
 	int** colArr = (int**)calloc(game->bSize +1 ,sizeof(int*));
 	/*2 assert*/
@@ -196,8 +197,8 @@ int updateErrors(gameData * game) {
 			rowVal = game->board[j][i];
 			colVal = game->board[i][j];
 			if(rowArr[rowVal]!=NULL){ /*row check by value*/
-				if (rowArr[rowVal]==0) {
-					rowArr[rowVal]=2;
+				if (*(rowArr[rowVal])==0) {
+					*(rowArr[rowVal]) = 2;
 					errors+=1;
 				}
 				if (game->board[j+game->bSize][i]==0) {
@@ -211,8 +212,8 @@ int updateErrors(gameData * game) {
 			}
 
 			if(colArr[colVal]!=NULL){
-				if (colArr[colVal]==0) {
-					colArr[colVal]=2;
+				if (*(colArr[colVal])==0) {
+					*(colArr[colVal])=2;
 					errors+=1;
 				}
 				if (game->board[i+game->bSize][j]==0) {
@@ -224,20 +225,19 @@ int updateErrors(gameData * game) {
 				colArr[colVal] = &game->board[i+game->bSize][j];
 			}
 		}
-		for (j = 0; j < game->bSize; ++j) {
+		for (j = 0; j < game->bSize + 1; ++j) {
 			rowArr[j] = NULL;
 			colArr[j] = NULL;
 		}
 	}
-
 	for (blockI = 0; blockI < game->m; blockI++) {
 		for (blockJ = 0; blockJ < game->n; blockJ++) {
 			for (i = blockI*game->n; i < (blockI+1)*game->n; i++) {
 				for (j = blockJ*game->m; j < (blockJ+1)*game->m; j++) {
 					colVal = game->board[i][j];
 					if(colArr[colVal]!=NULL){
-						if (colArr[colVal]==0) {
-							colArr[colVal]=2;
+						if (*(colArr[colVal])==0) {
+							*(colArr[colVal]) = 2;
 							errors+=1;
 						}
 						if (game->board[i+game->bSize][j]==0) {
@@ -250,7 +250,7 @@ int updateErrors(gameData * game) {
 					}
 				}
 			}
-			for (j = 0; j < game->bSize; ++j) {
+			for (j = 0; j < game->bSize + 1; ++j) {
 				colArr[j] = NULL;
 			}
 		}
@@ -331,23 +331,29 @@ int checkFixed(gameData * game, int x, int y) {
 }
 
 
-int validate(gameData * game);
+int validate(gameData * game, int p);
 
 
 
 int singleValue(gameData * gameC, int i, int j) {
-	int options = gameC->bSize, r = 0, c, cStart, rStart;
-	int * values = calloc(gameC->bSize, sizeof(int));
+	int options = gameC->bSize, r = 0, c = 0, cStart, rStart;
+	int * values = (int*)calloc(gameC->bSize, sizeof(int));
 	/*assert calloc*/
 	for (c = 0; c < gameC->bSize; c++) {
-		if (gameC->board[c][j] != 0 && values[gameC->board[r][j]] == 1) {
-			values[gameC->board[c][j]] = 0;
+		values[c] = 1;
+	}
+	for (c = 0; c < gameC->bSize; c++) {
+		if (gameC->board[c][j] != 0 && values[gameC->board[c][j] - 1] == 1) {
+			values[gameC->board[c][j] - 1] = 0;
+			/*printf("c: %d %d\t", gameC->board[c][j], values[gameC->board[r][j] - 1]);*/
 			options--;
 		}
-		if (gameC->board[i][r] != 0 && values[gameC->board[i][r]] == 1) {
-			values[gameC->board[i][r]] = 0;
+		if (gameC->board[i][c] != 0 && values[gameC->board[i][c] - 1] == 1) {
+			values[gameC->board[i][c] - 1] = 0;
+			/*printf("r: %d %d\t", gameC->board[i][c], values[gameC->board[i][c] - 1]);*/
 			options--;
 		}
+		/*printf("options: %d\n", options);*/
 		if (options == 0) {
 			free(values);
 			return 0;
@@ -357,14 +363,16 @@ int singleValue(gameData * gameC, int i, int j) {
 	rStart = (j) - ((j) % gameC->n); /*starting row of inner block*/
 	for (c = cStart; c < cStart + gameC->m; c++) {
 		for (r = rStart; r < rStart + gameC->n; r++) {
-			if (gameC->board[c][r] != 0 && values[gameC->board[c][r]] == 1) {
-				values[gameC->board[c][r]] = 0;
+			if (gameC->board[c][r] != 0 && values[gameC->board[c][r] - 1] == 1) {
+				values[gameC->board[c][r] - 1] = 0;
+				/*printf("b: %d %d", gameC->board[c][r], values[gameC->board[c][r] - 1]);*/
 				options--;
 				if (options == 0) {
 					free(values);
 					return 0;
 				}
 			}
+			/*printf("options: %d\n", options);*/
 		}
 	}
 	if (options == 1) {
@@ -481,6 +489,7 @@ int solve(gameData * game, char * path) {
 
 int edit(gameData * game, char* path) {
 	FILE * gameF;
+	char c = 0;
 	int i, j;
 	if (path == NULL) {
 		game->m = 3;
@@ -502,7 +511,7 @@ int edit(gameData * game, char* path) {
 		insertAtCurr(game, 2); /*dummy head node*/
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
-				fscanf(gameF, "%d", &game->board[i][j]);
+				fscanf(gameF, "%d%c", &game->board[i][j], &c);
 				if (game->board[i][j] != 0) {
 					game->numEmpty--;
 				}
@@ -553,19 +562,18 @@ void printBoard(gameData * game) {
 				printf("    ");
 				continue;
 			}
-			printf(" ");
+			printf(" %2d", game->board[i][j]);
 			if (game->mode == 1 && game->board[i + game->bSize][j] == 1) {
-				printf("%d.", game->board[i][j]);
+				printf(".");
 			}
 			else if (game->board[i + game->bSize][j] == 2) {
 				if ((game->mode == 1 && game->mark == 1) || game->mode == 2) {
-					printf("%d*", game->board[i][j]);
+					printf("*");
 				}
 			}
 			else {
-				printf("%2d", game->board[i][j]);
+				printf(" ");
 			}
-			printf(" ");
 		}
 		printf("|\n");
 	}
@@ -607,7 +615,7 @@ int set(gameData * game, char ** cmdArr) {
 	}
 	printBoard(game);
 	if (game->numEmpty == 0 && game->mode == 1) {
-		if (!validate(game)) {
+		if (!validate(game, 0)) {
 			printf(ERROR_SOL);
 			return 0;
 		}
@@ -621,24 +629,29 @@ int set(gameData * game, char ** cmdArr) {
 }
 
 
-int validate(gameData * game) {
+int validate(gameData * game, int p) { /*p tells us to print*/
 	gameData * gameC = NULL;
 	if(game->mode==0) { /*not in edit or solve mode*/
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
 	else if (game->errors!=0) {
-		printf(ERROR_VALUES);
-
+		if (p) {
+			printf(ERROR_VALUES);
+		}
 		return 0;
 	}
 	copyGame(&gameC, game);
 	if (ilpSolver(gameC)) {
-		printf(VAL_PASSED);
+		if (p) {
+			printf(VAL_PASSED);
+		}
 		return 1;
 	}
 	else{
-		printf(VAL_FAILED);
+		if (p) {
+			printf(VAL_FAILED);
+		}
 		return 0;
 	}
 }
@@ -846,7 +859,7 @@ int save(gameData * game, char * path) {
 			printf(ERROR_VALUES);
 			return 0;
 		}
-		if (validate(game) == 0) {
+		if (validate(game, 0) == 0) {
 			printf(ERROR_INVALID);
 			return 0;
 		}
@@ -870,6 +883,7 @@ int save(gameData * game, char * path) {
 		}
 	}
 	fclose(gameF);
+	printf(SAVED, path);
 	return 1;
 }
 
