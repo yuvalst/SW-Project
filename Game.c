@@ -979,6 +979,17 @@ int autofill(gameData * game) {
 	}
 	printBoard(game);
 	freeGame(gameC);
+	if (game->numEmpty == 0) {
+		if (!validate(game, 0)) {
+			printf(ERROR_SOL);
+			return 0;
+		}
+		else {
+			printf(PUZ_SOLVED);
+			newGame(game, 0); /*init mode and new game*/
+			return 1;
+		}
+	}
 	return 1;
 }
 
