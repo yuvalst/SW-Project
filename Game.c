@@ -31,6 +31,8 @@
 #define NUM_OF_SOLS "Number of solutions: %d\n"
 #define GOOD_B "This is a good board!\n"
 #define MORE_THAN_1_SOL "The puzzle has more than 1 solution, try to edit it further\n"
+#define VAL_PASSED "Validation passed: board is solvable\n"
+#define VAL_FAILED "Validation failed: board is unsolvable\n"
 #define NO_UNDO "Error: no moves to undo\n"
 #define UNDO "Undo %d,%d: from "
 #define NO_REDO "Error: no moves to redo\n"
@@ -142,7 +144,7 @@ int checkValid(gameData * game, int x, int y, int z) {
 	int i, j, cStart, rStart;
 	int** board = game->board;
 	for (i = 0; i < game->bSize; i++) {
-		if ((board[i][y - 1] == z) || (board[x - 1][i] == z)) {
+		if ( ((board[i][y - 1] == z)&&(i!=x-1)) || ((board[x - 1][i] == z)&&(i!=y-1)) ) {
 			return 0;
 		}
 	}
@@ -471,16 +473,17 @@ int validate(gameData * game) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	else if (game->errors != 0) {
-		printf("Validation passed: board is solvable\n");
+	else if (game->errors!=0) {
+		printf(ERROR_VALUES);
+
 		return 0;
 	}
 	else if (ilpSolver(game)) {
-		printf("Validation passed: board is solvable\n");
+		printf(VAL_PASSED);
 		return 1;
 	}
 	else{
-		printf("Validation failed: board is unsolvable\n");
+		printf(VAL_FAILED);
 		return 0;
 	}
 }
