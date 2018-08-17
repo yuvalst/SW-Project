@@ -63,6 +63,7 @@ gameData * initGame() {
 void freeBoard(gameData * game){
 	free(game->board[0]);
 	free(game->board);
+	game->board = NULL;
 }
 
 void freeGame(gameData* game) {
