@@ -34,7 +34,7 @@ int edit(gameData * game, char* path);
 int markErrors(gameData * game, char ** cmdArr);
 void printBoard(gameData * game);
 int set(gameData * game, char ** cmdArr);
-int validate(gameData * game);
+int validate(gameData * game, int p);
 int generate(gameData * game, char ** cmdArr);
 int undo(gameData * game, int p);
 int redo(gameData * game);

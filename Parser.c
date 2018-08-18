@@ -24,7 +24,7 @@
 #define SAVE "save"
 #define HINT "hint"
 #define SOLS "num_solutions"
-#define AUTO "auto_fill"
+#define AUTO "autofill"
 #define RESET "reset"
 #define EXIT "exit"
 #define ERROR_INV_CMD "ERROR: invalid command\n"
@@ -84,7 +84,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 		set(game, cmdArr);
 	}
 	else if (strcmp(cmd, VALIDATE) == 0) {
-		validate(game);
+		validate(game, 1);
 	}
 	else if (strcmp(cmd, GENERATE) == 0) {
 		for (i = 0; i < 2; i++) {

@@ -69,18 +69,23 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	}
 }
 
-void clearToEnd(node * head) {
+void clearToEnd(node ** head) {
+	node * tail = *head;
 	node * temp = NULL;
-	while (head != NULL) {
-		temp = head->next;
-		if (head->changes != NULL) {
-			free(head->changes);
+	while (tail != NULL) {
+		temp = tail->next;
+		if (tail->changes != NULL) {
+			free((tail)->changes);
+			tail->changes = NULL;
 		}
-		if (head->errorChanges != NULL) {
-			free(head->errorChanges);
+		if (tail->errorChanges != NULL) {
+			free(tail->errorChanges);
+			tail->errorChanges = NULL;
 		}
-		head = temp;
+		free(tail);
+		tail = temp;
 	}
+	*head = NULL;
 }
 
 /*Inserts a Node at head of doubly linked list*/
@@ -92,7 +97,7 @@ void insertAtCurr(gameData * game, int cmd) {
 		game->curr = newNode;
 		return;
 	}
-	clearToEnd(game->curr->next);
+	clearToEnd(&game->curr->next);
 	game->curr->next = newNode;
 	newNode->prev = game->curr;
 	game->curr = newNode;
@@ -102,7 +107,9 @@ void insertAtCurr(gameData * game, int cmd) {
 
 
 void freeList(gameData * game) {
-	clearToEnd(game->head);
+	if (game->head != NULL) {
+		clearToEnd(&game->head->next);
+	}
 }
 
 /*
