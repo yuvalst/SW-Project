@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "Game.h"
 #include "List.h"
+#include "Stack.h"
 
 
 
@@ -388,7 +389,7 @@ int ilpSolver(gameData * game) {
 	dir == -1 to go backward
 	x is column
 	y is row					*/
-void btMove(gameData * game,int * x, int * y, int dir) {
+void btMove(gameData * game,int * x, int * y, int dir, stack * stk, int* cell) {
 	if (dir == 1) {
 		if (*x == game->bSize) { /*end of row*/
 			*x=1;
@@ -397,6 +398,7 @@ void btMove(gameData * game,int * x, int * y, int dir) {
 		else { /*move to next cell in row*/
 			(*x)++;
 		}
+		push(stk,*x,*y,game->board[*x][*y]);
 	}
 	if (dir == -1) {
 		if (*x == 1) { /*start of row*/
@@ -406,42 +408,52 @@ void btMove(gameData * game,int * x, int * y, int dir) {
 		else { /*move to previous cell in row*/
 			(*x)--;
 		}
+		pop(stk,cell);
 	}
 }
 
 int exhaustiveBT(gameData * game){
-	int x = 1, y = 1, i, counter=0 ,dir=1;
+	int x = 0, y = 0, i, counter=0 ,dir=1;
+	int cell[3] = {0};
+	stack * stk = (stack*)malloc(sizeof(stack*));
+	/*assert*/
+	initStack(game,stk);
 	ChangeCellsWithValTo(game,1);
 
-	while(y!=0){
+	push(stk,0,0,game->board[0][0])
 
+	while(!isEmpty(stk)){
+		top(stk,cell);
+		x = cell[0];
+		y= cell[1];
 		if (game->board[game->bSize+x][y] != 0) { /*cell is fixed*/
-			btMove(game, &x, &y, dir); /*move to next cell*/
+			btMove(game, &x, &y, dir, stk, cell); /*move to next cell*/
 			continue;
 		}
 		else{
 			for (i = game->board[x][y]+1; i <= game->bSize; i++) { /*otherwise we check all valid values*/
-				if (checkValid(game, x, y, i)) { /*need to check if x and y are correct order*/
+				if (checkValid(game, x+1, y+1, i)) {
 					game->board[x][y] = i;
 					dir = 1;
-					btMove(game, &x, &y, dir);
+					btMove(game, &x, &y, dir, stk, cell);
 					break;
 				}
 			}
 			if (game->board[x][y] > game->bSize) { /*no more options for current cell*/
 				game->board[x][y] = 0;
 				dir = -1;
-				btMove(game, &x, &y, dir);
+				btMove(game, &x, &y, dir, stk, cell);
 				continue;
 			}
 		}
-		if (x==1 && y==game->bSize+1) { /*if the board is solved*/
+		if (/*x==1 && y==game->bSize+1*/ isFull(stk)) { /*if the board is solved*/
 			counter++;
 			dir = -1;
-			btMove(game, &x, &y, dir);
+			btMove(game, &x, &y, dir, stk, cell);
 		}
 	}
 	/*finished to check all possibilities*/
+	freeStack(stk);
 	return counter;
 }
 
