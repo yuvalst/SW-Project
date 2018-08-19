@@ -10,6 +10,7 @@
 #include "Game.h"
 #include "List.h"
 #include "Stack.h"
+#include "gurobi.h"
 
 
 
@@ -406,8 +407,7 @@ int singleValue(gameData * gameC, int i, int j) {
 }
 
 int ilpSolver(gameData * game) {
-	game->mark = game->mark + 0;
-	return 1;
+	return gurobi_solver(game);
 }
 
 /*	dir == 1 to go forward
