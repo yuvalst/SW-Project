@@ -129,8 +129,8 @@ void ChangeCellsWithValTo(gameData * game, int num){
 	int i,j;
 	for (i = 0; i < game->bSize; ++i) {
 		for (j = 0; j < game->bSize; ++j) {
-			if (game->board[i][j]) {
-				game->board[i][game->bSize+j] = num;
+			if (game->board[i][j] != 0) {
+				game->board[i + game->bSize][j] = num;
 			}
 		}
 	}
@@ -139,7 +139,7 @@ void ChangeCellsWithValTo(gameData * game, int num){
 
 void printRowSep(gameData * game) {
 	int i;
-	for (i = 0; i < 4 * game->bSize + game->m + 1; i++) {
+	for (i = 0; i < 4 * game->bSize + game->m + 1 ; i++) {
 		printf("-");
 	}
 	printf("\n");
@@ -177,6 +177,10 @@ void updateErrors(gameData * game) {
 	/*2 assert*/
 	int i,j,rowVal,colVal,errors = 0,blockJ,blockI;
 	for (i = 0; i < game->bSize; ++i) {  /*row and col check*/
+		for (j = 0; j < game->bSize + 1; ++j) {
+			rowArr[j] = NULL;
+			colArr[j] = NULL;
+		}
 		for (j = 0; j < game->bSize; ++j) {
 			/*might need to create function inside @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 			rowVal = game->board[j][i];
@@ -184,59 +188,55 @@ void updateErrors(gameData * game) {
 			if(rowArr[rowVal]!=NULL){ /*row check by value*/
 				if (*(rowArr[rowVal])==0) {
 					*(rowArr[rowVal]) = 2;
-					errors+=1;
+					errors++;
 				}
 				if (game->board[j+game->bSize][i]==0) {
 					game->board[j+game->bSize][i]=2;
-					errors+=1;
+					errors++;
 				}
 			}
 
-			else if (colVal != 0) {
-				rowArr[colVal] = &game->board[i+game->bSize][j];
+			else if (rowVal != 0) {
+				rowArr[rowVal] = &game->board[j+game->bSize][i];
 			}
 
 			if(colArr[colVal]!=NULL){
 				if (*(colArr[colVal])==0) {
 					*(colArr[colVal])=2;
-					errors+=1;
+					errors++;
 				}
 				if (game->board[i+game->bSize][j]==0) {
 					game->board[i+game->bSize][j]=2;
-					errors+=1;
+					errors++;
 				}
 			}
 			else if (colVal != 0) {
 				colArr[colVal] = &game->board[i+game->bSize][j];
 			}
 		}
-		for (j = 0; j < game->bSize + 1; ++j) {
-			rowArr[j] = NULL;
-			colArr[j] = NULL;
-		}
 	}
 	for (blockI = 0; blockI < game->m; blockI++) {
 		for (blockJ = 0; blockJ < game->n; blockJ++) {
+			for (j = 0; j < game->bSize + 1; ++j) {
+				colArr[j] = NULL;
+			}
 			for (i = blockI*game->n; i < (blockI+1)*game->n; i++) {
 				for (j = blockJ*game->m; j < (blockJ+1)*game->m; j++) {
 					colVal = game->board[i][j];
 					if(colArr[colVal]!=NULL){
 						if (*(colArr[colVal])==0) {
 							*(colArr[colVal]) = 2;
-							errors+=1;
+							errors++;
 						}
 						if (game->board[i+game->bSize][j]==0) {
 							game->board[i+game->bSize][j]=2;
-							errors+=1;
+							errors++;
 						}
 					}
 					else if (colVal != 0) {
 						colArr[colVal] = &game->board[i+game->bSize][j];
 					}
 				}
-			}
-			for (j = 0; j < game->bSize + 1; ++j) {
-				colArr[j] = NULL;
 			}
 		}
 	}
@@ -414,67 +414,68 @@ int ilpSolver(gameData * game) {
 	dir == -1 to go backward
 	x is column
 	y is row					*/
-void btMove(gameData * game,int * x, int * y, int dir, stack * stk, int* cell) {
+void btMove(gameData * game,int * i, int * j, int dir, stack * stk, int* cell) {
 	if (dir == 1) {
-		if (*x == game->bSize) { /*end of row*/
-			*x=1;
-			(*y)++;
+		if (*i == game->bSize - 1) { /*end of row*/
+			*i = 0;
+			(*j)++;
 		}
 		else { /*move to next cell in row*/
-			(*x)++;
+			(*i)++;
 		}
-		push(stk,*x,*y,game->board[*x][*y]);
+		push(stk,*i,*j,game->board[*i][*j]);
 	}
 	if (dir == -1) {
-		if (*x == 1) { /*start of row*/
-			*x = game->bSize;
-			(*y)--;
+		if (*i == 0) { /*start of row*/
+			*i = game->bSize - 1;
+			(*j)--;
 		}
 		else { /*move to previous cell in row*/
-			(*x)--;
+			(*i)--;
 		}
 		pop(stk,cell);
 	}
 }
 
 int exhaustiveBT(gameData * game){
-	int x = 0, y = 0, i, counter=0 ,dir=1;
+	int i = 0, j = 0, k, counter=0 ,dir=1, valid = 0;
 	int cell[3] = {0};
 	stack * stk = (stack*)malloc(sizeof(stack*));
 	/*assert*/
 	initStack(game,stk);
-	ChangeCellsWithValTo(game,1);
-
-	push(stk,0,0,game->board[0][0])
-
+	ChangeCellsWithValTo(game, 1);
+	push(stk, 0, 0, game->board[0][0]);
 	while(!isEmpty(stk)){
-		top(stk,cell);
-		x = cell[0];
-		y= cell[1];
-		if (game->board[game->bSize+x][y] != 0) { /*cell is fixed*/
-			btMove(game, &x, &y, dir, stk, cell); /*move to next cell*/
-			continue;
+		top(stk, cell);
+		/*printf("while\n");*/
+		i = cell[0];
+		j = cell[1];
+		if (game->board[game->bSize+i][j] != 0) { /*cell is fixed*/
+			/*printf("fixed - i: %d j: %d dir: %d top: %d\t", i, j, dir, stkSize(stk));*/
+			btMove(game, &i, &j, dir, stk, cell); /*move to next cell*/
 		}
 		else{
-			for (i = game->board[x][y]+1; i <= game->bSize; i++) { /*otherwise we check all valid values*/
-				if (checkValid(game, x+1, y+1, i)) {
-					game->board[x][y] = i;
+			valid = 0;
+			for (k = game->board[i][j]+1; k <= game->bSize; k++) { /*otherwise we check all valid values*/
+				/*printf("check valid - i: %d j: %d dir: %d", i, j, dir);*/
+				if (checkValid(game, i+1, j+1, k)) {
+					game->board[i][j] = k;
 					dir = 1;
-					btMove(game, &x, &y, dir, stk, cell);
+					valid = 1;
+					btMove(game, &i, &j, dir, stk, cell);
 					break;
 				}
 			}
-			if (game->board[x][y] > game->bSize) { /*no more options for current cell*/
-				game->board[x][y] = 0;
+			if (valid == 0) { /*no more options for current cell*/
+				game->board[i][j] = 0;
 				dir = -1;
-				btMove(game, &x, &y, dir, stk, cell);
-				continue;
+				btMove(game, &i, &j, dir, stk, cell);
 			}
 		}
-		if (/*x==1 && y==game->bSize+1*/ isFull(stk)) { /*if the board is solved*/
+		if (/*i==1 && y==game->bSize+1*/ isFull(stk)) { /*if the board is solved*/
 			counter++;
 			dir = -1;
-			btMove(game, &x, &y, dir, stk, cell);
+			btMove(game, &i, &j, dir, stk, cell);
 		}
 	}
 	/*finished to check all possibilities*/
@@ -956,8 +957,8 @@ int numSols(gameData * game) {
 	int numOsols;
 	gameData * gameC = NULL;
 	if (game->mode == 0) {
-			printf(ERROR_INV_CMD);
-			return 0;
+		printf(ERROR_INV_CMD);
+		return 0;
 	}
 	if (game->errors!=0) {
 		printf(ERROR_VALUES);
@@ -965,7 +966,7 @@ int numSols(gameData * game) {
 	}
 	copyGame(&gameC, game);
 	numOsols =  exhaustiveBT(gameC);
-	printf(NUM_OF_SOLS,numOsols);
+	printf(NUM_OF_SOLS, numOsols);
 	if (numOsols == 1) {
 		printf(GOOD_B);
 	}

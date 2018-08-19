@@ -1,7 +1,7 @@
 /*
  * Stack.h
  *
- *  Created on: 18 баев 2018
+ *  Created on: 18 пїЅпїЅпїЅпїЅ 2018
  *      Author: yuval
  */
 
@@ -9,6 +9,7 @@
 #define STACK_H_
 
 #include <stdio.h>
+#include "Game.h"
 
 #define MAX_LEN    3
 #define EMPTY     -1
@@ -20,10 +21,12 @@ typedef struct stack {
    int full;
 } stack;
 
-void initStack(stack *stk);
-void push(char c, stack *stk);
-void pop(stack *stk);
-void top( stack *stk);
+int stkSize(stack * stk);
+
+void initStack(gameData * game, stack *stk);
+void push(stack *stk, int i, int j, int z);
+void pop(stack *stk, int* cell);
+void top(stack *stk, int* cell) ;
 int isEmpty( stack *stk);
 int isFull( stack *stk);
 void freeStack(stack *stk);
