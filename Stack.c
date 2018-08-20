@@ -8,22 +8,20 @@
 void initStack(gameData * game, stack *stk)
 {
    stk->top = EMPTY;
-   stk->full = game->bSize*game->bSize - 1;
-   stk->arr = (int*)calloc(stk->full+1,sizeof(int));
+   stk->full = game->bSize * game->bSize - 1;
+   stk->arr = (int*)calloc(3*(stk->full + 2),sizeof(int));
    /*assert*/
 }
 
 void push(stack *stk, int i, int j, int z) {
     stk->top++;
-    stk->arr[stk -> top*3] = i;
-    stk->arr[stk -> top*3+1] = j;
-    stk->arr[stk -> top*3+2] = z;
+    stk->arr[stk->top*3] = i;
+    stk->arr[stk->top*3+1] = j;
+    stk->arr[stk->top*3+2] = z;
 }
 
 void pop(stack *stk, int* cell) {
-  cell[0] = stk->arr[stk->top*3];
-  cell[1] = stk->arr[stk->top*3+1];
-  cell[2] = stk->arr[stk->top*3+2];
+  top(stk, cell);
   stk->top--;
 }
 
@@ -38,7 +36,7 @@ int isEmpty(stack *stk) {
 }
 
 int isFull(stack *stk) {
-	return ((stk->top == stk->full + 1));
+	return ((stk->top == stk->full));
 }
 
 int stkSize(stack * stk) {
@@ -46,6 +44,12 @@ int stkSize(stack * stk) {
 }
 
 void freeStack(stack *stk) {
-	free(stk->arr);
-	free(stk);
+	if (stk->arr != NULL) {
+		free(stk->arr);
+		stk->arr = NULL;
+	}
+	if (stk != NULL) {
+		free(stk);
+		stk = NULL;
+	}
 }

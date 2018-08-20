@@ -90,6 +90,11 @@ int ** initBoard(int bSize, int multi) {
 }
 
 
+void freeGameC(gameData * gameC) {
+	freeGame(gameC);
+	free(gameC);
+}
+
 void copyGame(gameData ** gameC, gameData * game) {
 	int i, j;
 	*gameC = (gameData *)malloc(sizeof(gameData));
@@ -436,7 +441,12 @@ void btMove(gameData * game,int * i, int * j, int dir, stack * stk, int* cell) {
 		else { /*move to next cell in row*/
 			(*i)++;
 		}
-		push(stk,*i,*j,game->board[*i][*j]);
+		if (*j >= game->bSize) {
+			push(stk, *i, *j, 0);
+		}
+		else {
+			push(stk,*i,*j,game->board[*i][*j]);
+		}
 	}
 	if (dir == -1) {
 		if (*i == 0) { /*start of row*/
@@ -453,7 +463,7 @@ void btMove(gameData * game,int * i, int * j, int dir, stack * stk, int* cell) {
 int exhaustiveBT(gameData * game){
 	int i = 0, j = 0, k, counter=0 ,dir=1, valid = 0;
 	int cell[3] = {0};
-	stack * stk = (stack*)malloc(sizeof(stack*));
+	stack * stk = (stack*)malloc(sizeof(stack));
 	/*assert*/
 	initStack(game,stk);
 	ChangeCellsWithValTo(game, 1);
@@ -679,12 +689,14 @@ int validate(gameData * game, int p) { /*p tells us to print*/
 		if (p) {
 			printf(VAL_PASSED);
 		}
+		freeGameC(gameC);
 		return 1;
 	}
 	else{
 		if (p) {
 			printf(VAL_FAILED);
 		}
+		freeGameC(gameC);
 		return 0;
 	}
 }
@@ -723,18 +735,18 @@ int generate(gameData * game, char ** cmdArr) {
 			while (options > 0) { /*while still have value options*/
 				numOfOnes = (rand() % options) + 1; /*choose random value index*/
 				for (k = 1; k <= game->bSize; k++) {
-					if (values[k] == 1) {
+					if (values[k - 1] == 1) {
 						numOfOnes--;
 					}
 					if (numOfOnes == 0) { /*found the random chosen index of the value*/
 						break;
 					}
 				}
-				if (checkValid(game, i, j, k + 1)) { /*random value is valid*/
-					game->board[i][j] = k + 1;
+				if (checkValid(game, i + 1, j + 1, k)) { /*random value is valid*/
+					game->board[i][j] = k;
 					break;
 				}
-				values[k] = 0; /*random value isn't an option anymore for this cell*/
+				values[k - 1] = 0; /*random value isn't an option anymore for this cell*/
 				options--; /*one less option*/
 			}
 			if(game->board[i][j] == 0) { /*couldn't find random valid value*/
@@ -805,7 +817,14 @@ int undo(gameData * game, int p) { /*p tells us if prints are needed*/
 		x = game->curr->errorChanges[4 * i];
 		y = game->curr->errorChanges[(4 * i) + 1];
 		prevZ = game->curr->errorChanges[(4 * i) + 2];
+		z = game->curr->errorChanges[(4 * i) + 3];
 		game->board[x + game->bSize - 1][y - 1] = prevZ;
+		if (z == 2 && prevZ == 0) {
+			game->errors--;
+		}
+		else if (z == 0 && prevZ == 2) {
+			game->errors++;
+		}
 	}
 	if (p) {
 		printBoard(game);
@@ -856,7 +875,14 @@ int redo(gameData * game) {
 		x = game->curr->errorChanges[4 * i];
 		y = game->curr->errorChanges[(4 * i) + 1];
 		nextZ = game->curr->errorChanges[(4 * i) + 3];
+		z = game->curr->errorChanges[(4 * i) + 2];
 		game->board[x + game->bSize - 1][y - 1] = nextZ;
+		if (z == 2 && nextZ == 0) {
+			game->errors--;
+		}
+		else if (z == 0 && nextZ == 2) {
+			game->errors++;
+		}
 	}
 	printBoard(game);
 	for (i = 0; i < game->curr->numOfChanges; i++) {
@@ -951,11 +977,11 @@ int hint(gameData * game, char ** cmdArr){
 	res = ilpSolver(gameC);
 	if(!res) { /*board unsolvable*/
 		printf(ERROR_UNSLOVABLE);
-		freeGame(gameC);
+		freeGameC(gameC);
 		return 0;
 	}
 	printf(HINT, gameC->board[x-1][y-1]);
-	freeGame(gameC);
+	freeGameC(gameC);
 	return 1;
 }
 
@@ -979,6 +1005,7 @@ int numSols(gameData * game) {
 	else{
 		printf(MORE_THAN_1_SOL);
 	}
+	freeGameC(gameC);
 	return 1;
 }
 
@@ -1013,7 +1040,7 @@ int autofill(gameData * game) {
 		}
 	}
 	printBoard(game);
-	freeGame(gameC);
+	freeGameC(gameC);
 	checkIfSolved(game);
 	return 1;
 }
