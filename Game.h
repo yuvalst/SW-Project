@@ -29,6 +29,7 @@ typedef struct gameData {
 
 
 gameData * initGame();
+int ilpSolver(gameData * game);
 int solve(gameData * game, char * path);
 int edit(gameData * game, char* path);
 int markErrors(gameData * game, char ** cmdArr);

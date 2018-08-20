@@ -8,7 +8,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "Game.h"
+#include "Parser.h"
+
 
 #define cmdLen 256
 #define DELIMITER " \t\r\n"
