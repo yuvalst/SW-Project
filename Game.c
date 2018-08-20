@@ -301,6 +301,19 @@ int updateSetErrors(gameData * game, int x, int y, int prev, int z) {
 	return 1;
 }
 
+void updateEmpty(gameData * game, int prev, int z) {
+	if (z != 0) {
+			if (prev == 0) {
+				game->numEmpty--;
+			}
+		}
+	else {
+		if (prev != 0) {
+			game->numEmpty++;
+		}
+	}
+}
+
 
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
@@ -642,16 +655,7 @@ int set(gameData * game, char ** cmdArr) {
 	addToNode(game, x, y, z, 0);
 	game->board[x-1][y-1] = z;
 	updateSetErrors(game, x, y, prev, z); /*if current set caused/solved an error mark the cells accordingly and update curr node in list. also update errors field*/
-	if (z != 0) {
-		if (prev == 0) {
-			game->numEmpty--;
-		}
-	}
-	else {
-		if (prev != 0) {
-			game->numEmpty++;
-		}
-	}
+	updateEmpty(game, prev, z);
 	printBoard(game);
 	checkIfSolved(game);
 	return 1;
@@ -702,7 +706,7 @@ int generate(gameData * game, char ** cmdArr) {
 	}
 	x = atoi(cmdArr[0]);
 	y = atoi(cmdArr[1]);
-	values = calloc(game->bSize, sizeof(int));
+	values = (int *)calloc(game->bSize, sizeof(int));
 	/*assert calloc*/
 	for (try = 0; try < 1000; try++) { /*1000 tries*/
 		res = 1;
@@ -726,8 +730,8 @@ int generate(gameData * game, char ** cmdArr) {
 						break;
 					}
 				}
-				if (checkValid(game, i, j, k)) { /*random value is valid*/
-					game->board[i][j] = k;
+				if (checkValid(game, i, j, k + 1)) { /*random value is valid*/
+					game->board[i][j] = k + 1;
 					break;
 				}
 				values[k] = 0; /*random value isn't an option anymore for this cell*/
@@ -794,6 +798,7 @@ int undo(gameData * game, int p) { /*p tells us if prints are needed*/
 		x = game->curr->changes[4 * i];
 		y = game->curr->changes[(4 * i) + 1];
 		prevZ = game->curr->changes[(4 * i) + 2];
+		updateEmpty(game, game->board[x-1][y-1], prevZ);
 		game->board[x - 1][y - 1] = prevZ;
 	}
 	for (i = 0; i < game->curr->numOfErrors; i++) {
@@ -844,6 +849,7 @@ int redo(gameData * game) {
 		x = game->curr->changes[4 * i];
 		y = game->curr->changes[(4 * i) + 1];
 		nextZ = game->curr->changes[(4 * i) + 3];
+		updateEmpty(game, game->board[x-1][y-1], nextZ);
 		game->board[x - 1][y - 1] = nextZ;
 	}
 	for (i = 0; i < game->curr->numOfErrors; i++) {
