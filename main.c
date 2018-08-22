@@ -9,18 +9,28 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "Game.h"
+#include "GameAux.h"
 #include "Parser.h"
+#define  ENTER_CMD "Enter your command:\n"
+#define SUDOKU "Sudoku\n------\n"
 
-int main(int argc, char ** argv) {
-	char ** cmdArr = (char **)calloc(3, sizeof(char*));
-	/*assert*/
+
+
+int main(void) {
+	int run = 1;
+	time_t seed;
+	char * cmdArr[3];
 	gameData * game = initGame();
-	if (argc == 0 || argv == NULL) {
-		printf(" ");
+	printf(SUDOKU);
+	seed = time(NULL);
+	srand(seed);
+	while (run!=-1) {
+		printf(ENTER_CMD);
+		run = getCommand(game, cmdArr);
+		/*fseek(stdin,0,SEEK_END);*/ /*flush stdin*/
 	}
-	while (1) {
-		getCommand(game, cmdArr);
-	}
+	exitGame(game);
 	return 1;
 }

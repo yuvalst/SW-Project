@@ -39,15 +39,13 @@ int checkToken(char * cmd){
 }
 
 int getCommand(gameData * game, char ** cmdArr) {
-	char input [cmdLen] = {0};
-	char * cmd;
+	char input [cmdLen + 1] = {0};
+	char * cmd, *checkEOF;
 	int i;
-	/*checkEOF = */
-	fgets(input, cmdLen, stdin);
-	/*if (checkEOF == NULL) {
-		cmdArr[0] = -1;
-		return 0;
-	}*/
+	checkEOF = fgets(input, cmdLen, stdin);
+	if (checkEOF == NULL) {
+		return -1;
+	}
 	cmd = strtok(input, DELIMITER);
 	if(cmd == NULL) {
 		return 0;
@@ -120,20 +118,10 @@ int getCommand(gameData * game, char ** cmdArr) {
 		}
 		hint(game, cmdArr);
 	}
-	else if (strcmp(cmd, SOLS) == 0) {
-		numSols(game);
-	}
-	else if (strcmp(cmd, AUTO) == 0) {
-		autofill(game);
-	}
-	else if (strcmp(cmd, RESET) == 0) {
-		reset(game);
-	}
-	else if (strcmp(cmd, EXIT) == 0) {
-		exitGame(game);
-	}
-	else {
-		printf(ERROR_INV_CMD);
-	}
+	else if (strcmp(cmd, SOLS) == 0) { numSols(game);	}
+	else if (strcmp(cmd, AUTO) == 0) { autofill(game);	}
+	else if (strcmp(cmd, RESET) == 0) {	reset(game);	}
+	else if (strcmp(cmd, EXIT) == 0) { 	return -1;		}
+	else { printf(ERROR_INV_CMD);  						}
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Stack.h"
+#include "GameAux.h"
 
 
 void initStack(gameData * game, stack *stk)
@@ -10,7 +11,7 @@ void initStack(gameData * game, stack *stk)
    stk->top = EMPTY;
    stk->full = game->bSize * game->bSize - 1;
    stk->arr = (int*)calloc(3*(stk->full + 2),sizeof(int));
-   /*assert*/
+   checkAlloc(stk->arr);
 }
 
 void push(stack *stk, int i, int j, int z) {
