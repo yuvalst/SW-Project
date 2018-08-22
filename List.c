@@ -11,16 +11,14 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include "List.h"
-
-
-
+#include "GameAux.h"
 
 
 
 /*Creates a new Node and returns pointer to it*/
 node * createNode() {
 	node * newNode = (struct node*)malloc(sizeof(node));
-	/* assert*/
+	checkAlloc(newNode);
 	newNode->numOfChanges = 0;
 	newNode->numOfErrors = 0;
 	newNode->changes = NULL;
@@ -35,11 +33,11 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	if (type == 0) { /*change in board cell*/
 		if (game->curr->changes == NULL){
 			game->curr->changes = (int *)malloc(4 * sizeof(int));
-			/* assert*/
+			checkAlloc(game->curr->changes);
 		}
 		else {
 			game->curr->changes = (int *)realloc(game->curr->changes, (game->curr->numOfChanges + 1) * 4 * sizeof(int));
-			/* assert*/
+			checkAlloc(game->curr->changes);
 		}
 		game->curr->changes[4 * game->curr->numOfChanges] = x;
 		game->curr->changes[(4 * game->curr->numOfChanges) + 1] = y;
@@ -55,11 +53,11 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	else { /*error created/solved*/
 		if (game->curr->errorChanges == NULL){
 			game->curr->errorChanges = (int *)malloc(4 * sizeof(int));
-			/* assert*/
+			checkAlloc(game->curr->errorChanges);
 		}
 		else {
 			game->curr->errorChanges = (int *)realloc(game->curr->errorChanges, (game->curr->numOfErrors + 1) * 4 * sizeof(int));
-			/* assert*/
+			checkAlloc(game->curr->errorChanges);
 		}
 		game->curr->errorChanges[4 * game->curr->numOfErrors] = x;
 		game->curr->errorChanges[(4 * game->curr->numOfErrors) + 1] = y;
@@ -108,7 +106,7 @@ void insertAtCurr(gameData * game, int cmd) {
 
 void freeList(gameData * game) {
 	if (game->head != NULL) {
-		clearToEnd(&game->head->next);
+		clearToEnd(&game->head);
 	}
 }
 

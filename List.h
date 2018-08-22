@@ -8,9 +8,7 @@
 #ifndef LIST_H_
 #define LIST_H_
 
-
 #include "Game.h"
-
 
  struct node {
 		int cmd;
@@ -23,7 +21,7 @@
 };
 
 
-
+ void clearToEnd(node ** head);
 void addToNode(gameData * game, int x, int y, int z, int type);
 void insertAtCurr(gameData * game, int cmd);
 void freeList(gameData * game);
