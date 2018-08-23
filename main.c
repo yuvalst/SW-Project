@@ -16,7 +16,7 @@
 #define  ENTER_CMD "Enter your command:\n"
 #define SUDOKU "Sudoku\n------\n"
 
-
+/*for save*/
 
 int main(void) {
 	int run = 1;

@@ -145,11 +145,11 @@ int markErrors(gameData * game, char ** cmdArr) {
 void printBoard(gameData * game) {
 	int i, j;
 	for (j = 0; j < game->bSize; j++) {
-		if (j % game->n == 0) {
+		if (j % game->m == 0) {
 			printRowSep(game);
 		}
 		for (i = 0; i < game->bSize; i++) {
-			if (i % game->m == 0) {
+			if (i % game->n == 0) {
 				printf("|");
 			}
 			if (game->board[i][j] == 0) {
@@ -213,7 +213,7 @@ int validate(gameData * game, int p) { /*p tells us to print*/
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	else if (game->errors!=0) {
+	else if (game->errors != 0) {
 		if (p) {
 			printf(ERROR_VALUES);
 		}

@@ -17,7 +17,7 @@
 
 /*Creates a new Node and returns pointer to it*/
 node * createNode() {
-	node * newNode = (struct node*)malloc(sizeof(node));
+	node * newNode = (node*)malloc(sizeof(node));
 	checkAlloc(newNode);
 	newNode->numOfChanges = 0;
 	newNode->numOfErrors = 0;
