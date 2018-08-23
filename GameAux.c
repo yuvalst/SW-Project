@@ -63,9 +63,9 @@ int ** initBoard(int bSize, int multi) {
 	int i;
 	int *p;
 	int **board;
-	p = calloc(multi * bSize * bSize, sizeof(int)); /*from col bSize we keep matrix of 0/1/2 which tells which cell is fixed or has error*/
+	p = (int*)calloc(multi * bSize * bSize, sizeof(int)); /*from col bSize we keep matrix of 0/1/2 which tells which cell is fixed or has error*/
 	checkAlloc(p);
-	board = calloc(multi * bSize, sizeof(int *));
+	board = (int**)calloc(multi * bSize, sizeof(int *));
 	checkAlloc(board);
 	for(i = 0; i < multi * bSize ; i++ ) {
 		board[i] = p + i*bSize;
@@ -132,7 +132,7 @@ void ChangeCellsWithValTo(gameData * game, int num) { /*used for exhaustiveBT. c
 
 void printRowSep(gameData * game) {
 	int i;
-	for (i = 0; i < 4 * game->bSize + game->m + 1 + ((game->m + 1)%2) ; i++) {
+	for (i = 0; i < 4 * game->bSize + game->m + 1; i++) {
 		printf("-");
 	}
 	printf("\n");
@@ -150,10 +150,10 @@ int checkValid(gameData * game, int x, int y, int z) {
 			return 0;
 		}
 	}
-	cStart = (x-1) - ((x-1) % game->m); /*starting col of inner block*/
-	rStart = (y-1) - ((y-1) % game->n); /*starting row of inner block*/
-	for (i = cStart; i < cStart + game->m; i++) {
-		for (j = rStart; j < rStart + game->n; j++) {
+	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
+	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
+	for (i = cStart; i < cStart + game->n; i++) {
+		for (j = rStart; j < rStart + game->m; j++) {
 			if ((board[i][j] == z) && (i != x - 1) && (j != y - 1)) {
 				return 0;
 			}
@@ -225,8 +225,8 @@ void updateErrors(gameData * game) {
 			}*/
 		}
 	}
-	for (blockI = 0; blockI < game->m; blockI++) {
-		for (blockJ = 0; blockJ < game->n; blockJ++) {
+	for (blockI = 0; blockI < game->n; blockI++) {
+		for (blockJ = 0; blockJ < game->m; blockJ++) {
 			for (j = 0; j < game->bSize + 1; ++j) {
 				colArr[j] = NULL;
 			}
@@ -289,10 +289,10 @@ int updateSetErrors(gameData * game, int x, int y, int prev, int z) {
 			handleCellErrors(game, x, i + 1, prev, z, &err);
 		}
 	}
-	cStart = (x-1) - ((x-1) % game->m); /*starting col of inner block*/
-	rStart = (y-1) - ((y-1) % game->n); /*starting row of inner block*/
-	for (i = cStart; i < cStart + game->m; i++) {
-		for (j = rStart; j < rStart + game->n; j++) {
+	cStart = (x-1) - ((x-1) % game->n); /*starting col of inner block*/
+	rStart = (y-1) - ((y-1) % game->m); /*starting row of inner block*/
+	for (i = cStart; i < cStart + game->n; i++) {
+		for (j = rStart; j < rStart + game->m; j++) {
 			if (i != x - 1 && j != y - 1) {
 				handleCellErrors(game, i + 1, j + 1, prev, z, &err);
 			}

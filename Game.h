@@ -17,8 +17,8 @@ typedef struct gameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
 	int mark;
 	int errors;
-	int n;
 	int m;
+	int n;
 	int bSize;
 	int numEmpty; /*number of empty cells*/
 	int ** board;

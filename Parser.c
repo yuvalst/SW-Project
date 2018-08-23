@@ -47,14 +47,10 @@ int getCommand(gameData * game, char ** cmdArr) {
 		return -1;
 	}
 	cmd = strtok(input, DELIMITER);
-	if(cmd == NULL) {
-		return 0;
-	}
+	if(cmd == NULL) { return 0; }
 	else if (strcmp(cmd, SOLVE) == 0) {
 		cmd = strtok(NULL, DELIMITER);
-		if(checkToken(cmd) == 0) { /*invalid command*/
-			return 0;
-		}
+		if(checkToken(cmd) == 0) { return 0; } /*invalid command*/
 		solve(game, cmd);
 	}
 	else if (strcmp(cmd, EDIT) == 0) {
@@ -63,9 +59,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 	}
 	else if (strcmp(cmd, MARK) == 0) {
 		cmd = strtok(NULL, DELIMITER);
-		if(checkToken(cmd) == 0) {
-			return 0;
-		}
+		if(checkToken(cmd) == 0) { return 0; }
 		cmdArr[0] = cmd;
 		markErrors(game, cmdArr);
 	}
@@ -75,16 +69,12 @@ int getCommand(gameData * game, char ** cmdArr) {
 	else if (strcmp(cmd, SET) == 0) {
 		for (i = 0; i < 3; i++) {
 			cmd = strtok(NULL, DELIMITER);
-			if(checkToken(cmd) == 0) {
-				return 0;
-			}
+			if(checkToken(cmd) == 0) { return 0; }
 			cmdArr[i] = cmd;
 		}
 		set(game, cmdArr);
 	}
-	else if (strcmp(cmd, VALIDATE) == 0) {
-		validate(game, 1);
-	}
+	else if (strcmp(cmd, VALIDATE) == 0) { validate(game, 1); }
 	else if (strcmp(cmd, GENERATE) == 0) {
 		for (i = 0; i < 2; i++) {
 			cmd = strtok(NULL, DELIMITER);
@@ -95,12 +85,8 @@ int getCommand(gameData * game, char ** cmdArr) {
 		}
 		generate(game, cmdArr);
 	}
-	else if (strcmp(cmd, UNDO) == 0) {
-		undo(game, 1);
-	}
-	else if (strcmp(cmd, REDO) == 0) {
-		redo(game);
-	}
+	else if (strcmp(cmd, UNDO) == 0) { undo(game, 1); }
+	else if (strcmp(cmd, REDO) == 0) { redo(game); }
 	else if (strcmp(cmd, SAVE) == 0) {
 		cmd = strtok(NULL, DELIMITER);
 		if(checkToken(cmd) == 0) {
@@ -118,10 +104,10 @@ int getCommand(gameData * game, char ** cmdArr) {
 		}
 		hint(game, cmdArr);
 	}
-	else if (strcmp(cmd, SOLS) == 0) { numSols(game);	}
-	else if (strcmp(cmd, AUTO) == 0) { autofill(game);	}
-	else if (strcmp(cmd, RESET) == 0) {	reset(game);	}
-	else if (strcmp(cmd, EXIT) == 0) { 	return -1;		}
-	else { printf(ERROR_INV_CMD);  						}
+	else if (strcmp(cmd, SOLS) == 0) { numSols(game); }
+	else if (strcmp(cmd, AUTO) == 0) { autofill(game); }
+	else if (strcmp(cmd, RESET) == 0) {	reset(game); }
+	else if (strcmp(cmd, EXIT) == 0) { return -1; }
+	else { printf(ERROR_INV_CMD); }
 	return 0;
 }

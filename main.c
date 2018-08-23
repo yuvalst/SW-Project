@@ -17,7 +17,6 @@
 #define SUDOKU "Sudoku\n------\n"
 
 
-
 int main(void) {
 	int run = 1;
 	time_t seed;
