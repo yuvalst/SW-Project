@@ -43,13 +43,13 @@ int addConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, do
 }
 
 int addBlockConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS, int cols, int rows) {
-	int i, j, v, ig, jg, count;
+	int i, j, v, blockRow, blockCol, count;
 	for (v = 0; v < bS; v++) {
-		for (ig = 0; ig < cols; ig++) {
-			for (jg = 0; jg < rows; jg++) {
+		for (blockRow = 0; blockRow < cols; blockRow++) {
+			for (blockCol = 0; blockCol < rows; blockCol++) {
 				count = 0;
-				for (i = ig*rows; i < (ig+1)*rows; i++) {
-					for (j = jg*cols; j < (jg+1)*cols; j++) {
+				for (i = blockRow*rows; i < (blockRow+1)*rows; i++) {
+					for (j = blockCol*cols; j < (blockCol+1)*cols; j++) {
 						ind[count] = i*bS*bS + j*bS + v;
 						val[count] = 1.0;
 						count++;
