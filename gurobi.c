@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "gurobi.h"
 #include "Game.h"
+#include "GameAux.h"
 #include "gurobi_c.h"
+
+#define GUR_ERROR "Gurobi error! Exiting\n"
 
 
 int addFixedConstraints (gameData * game, GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS) {
@@ -83,13 +87,13 @@ int solution (gameData * game, int * optimstatus, double * sol, int bS) {
 	}
 	/* no solution found */
 	else if (*optimstatus == GRB_INF_OR_UNBD) {
-		printf("Model is infeasible or unbounded\n");
-		return 0;
+		/*printf("Model is infeasible or unbounded\n");*/
+		return -1;
 	}
 	/* error or calculation stopped */
 	else {
-		printf("Optimization was stopped early\n");
-		return 0;
+		/*printf("Optimization was stopped early\n");*/
+		return -1;
 	}
 }
 
@@ -132,7 +136,6 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 
 
 	/* Add variables */
-
 	/* coefficients and variable types for cells */
 	for (i = 0; i < bS3; ++i)
 	{
@@ -145,13 +148,6 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 		return 0;
 	}
 
-	/* Change objective sense to maximization */
-	/*error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
-	if (error) {
-		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return 0;
-	}*/
-
 	/* update the model - to integrate new variables */
 	error = GRBupdatemodel(model);
 	if (error) {
@@ -163,100 +159,19 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 	/* First constraint: fixed cells */
 	addFixedConstraints(game, &env, &model, &error, ind, val, bS);
 
-	/*for (i = 0; i < bS; i++) {
-		for (j = 0; j < bS; j++) {
-			for (v = 0; v < bS; v++) {
-				if (game->board[i][j] == v + 1){
-					ind[0] = i*bS*bS+j*bS+v;
-					val[0] = 1.0;
-					error = GRBaddconstr(model, 1, ind, val, GRB_EQUAL, 1.0, "fixed");
-					if (error) {
-						printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-						return 0;
-					}
-				}
-			}
-		}
-	}*/
-
 	/* Second constraint: Each cell gets a value */
 	addConstraints(&env, &model, &error, ind, val, bS, bS*bS, bS, 1);
-
-	/*for (i = 0; i < bS; i++) {
-		for (j = 0; j < bS; j++) {
-			for (v = 0; v < bS; v++) {
-				ind[v] = i*bS*bS + j*bS + v;
-				val[v] = 1.0;
-			}
-			error = GRBaddconstr(model, bS, ind, val, GRB_EQUAL, 1.0, NULL);
-			if (error) {
-				printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return 0;
-			}
-		}
-	}*/
 
 	/* Third constraint: Each value must appear once in each row */
 	addConstraints(&env, &model, &error, ind, val, bS, bS, 1, bS*bS);
 
-	/*for (j = 0; j < bS; j++) {
-		for (v = 0; v < bS; v++) {
-			for (i = 0; i < bS; i++) {
-				ind[i] = i*bS*bS + j*bS + v;
-				val[i] = 1.0;
-			}
-
-			error = GRBaddconstr(model, bS, ind, val, GRB_EQUAL, 1.0, NULL);
-			if (error) {
-				printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return 0;
-			}
-		}
-	}*/
 
 	/* 4th constraint: Each value must appear once in each column */
 	addConstraints(&env, &model, &error, ind, val, bS, bS*bS, 1, bS);
 
-	/*for (i = 0; i < bS; i++) {
-		for (v = 0; v < bS; v++) {
-			for (j = 0; j < bS; j++) {
-				ind[j] = i*bS*bS + j*bS + v;
-				val[j] = 1.0;
-			}
 
-			error = GRBaddconstr(model, bS, ind, val, GRB_EQUAL, 1.0, NULL);
-			if (error) {
-				printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return 0;
-			}
-		}
-	}*/
-
-	/* 5th constraint: Each value must appear once in each subgrid */
+	/* 5th constraint: Each value must appear once in each block */
 	addBlockConstraints(&env, &model, &error, ind, val, bS, cols, rows);
-
-	/*for (v = 0; v < bS; v++) {
-		for (ig = 0; ig < cols; ig++) {
-			for (jg = 0; jg < rows; jg++) {
-				count = 0;
-				for (i = ig*rows; i < (ig+1)*rows; i++) {
-					for (j = jg*cols; j < (jg+1)*cols; j++) {
-						ind[count] = i*bS*bS + j*bS + v;
-						val[count] = 1.0;
-						count++;
-					}
-				}
-				error = GRBaddconstr(model, bS, ind, val, GRB_EQUAL, 1.0, NULL);
-				if (error) {
-					printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-					return 0;
-				}
-			}
-		}
-	}*/
-
-
-
 
 	/* Optimize model - need to call this before calculation */
 	error = GRBoptimize(model);
@@ -273,7 +188,6 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 	}
 
 	/* Get solution information */
-
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
@@ -283,49 +197,20 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 	/* get the objective -- the optimal result of the function */
 	error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
 	if (error) {
-		printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
-		/*return 0;*/
+		/*printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));*/
+		return -1;
 	}
 
 	/* get the solution - the assignment to each variable */
-	/* 3-- number of variables, the size of "sol" should match */
 	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, bS3, sol);
 	if (error) {
-		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-		/*return 0;*/
+		/*printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));*/
+		return -1;
 	}
 
-	/* print results */
-	printf("\nOptimization complete\n");
-
-	/* solution found */
+	/* get solution */
 	res  = solution(game, &optimstatus, sol, bS);
-
-	/*if (optimstatus == GRB_OPTIMAL) {
-		for (i = 0; i < bS; i++) {
-			for (j = 0; j < bS; j++) {
-				for (v = 0; v < bS; v++) {
-					if (sol[i*bS*bS+j*bS+v]==1){
-						game->board[i][j] = v+1;
-					}
-				}
-
-			}
-		}
-		return 1;
-	}*/
-	/* no solution found */
-	/*else if (optimstatus == GRB_INF_OR_UNBD) {
-		printf("Model is infeasible or unbounded\n");*/
-		/*return 0;*/
-	/*}*/
-	/* error or calculation stopped */
-	/*else {
-		printf("Optimization was stopped early\n");*/
-		/*return 0;
-	}*/
-
-	/* IMPORTANT !!! - Free model and environment */
+	/* Free model and environment */
 	GRBfreemodel(model);
 	GRBfreeenv(env);
 	return res;
@@ -333,26 +218,34 @@ int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char *
 
 
 int gurobi_solver(gameData* game){
-	int res,bS,bS3;
+	int res, bS, bS3;
 	double * sol, *val, *obj;
 	int* ind;
 	char* vtype;
 	bS = game->bSize;
 	bS3 = bS*bS*bS;
-	if (!game){
-		return -1;
-	}
 	sol  = (double *) calloc (bS3, sizeof(double));
+	checkAlloc(sol);
 	ind  = (int *) calloc (bS * bS, sizeof(int));
+	checkAlloc(ind);
 	val  = (double *) calloc (bS * bS, sizeof(double));
+	checkAlloc(val);
 	obj  = (double *) calloc (bS3, sizeof(double));
+	checkAlloc(obj);
 	vtype  = (char *) calloc (bS3, sizeof(char));
-	/*assert*/
+	checkAlloc(vtype);
 	res = ilp(game,sol,ind,val,obj,vtype);
 	free(sol);
 	free(obj);
 	free(vtype);
 	free(ind);
 	free(val);
+	if (res == -1) {
+		return 0;
+	}
+	else if (res == 0) {
+		printf(GUR_ERROR);
+		exit(0);
+	}
 	return res;
 }

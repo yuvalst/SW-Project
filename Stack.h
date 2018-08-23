@@ -1,6 +1,6 @@
 /*
  * Stack.h
- *for save
+ *
  *  Created on: 18 ���� 2018
  *      Author: yuval
  */
