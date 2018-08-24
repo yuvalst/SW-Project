@@ -132,7 +132,7 @@ void ChangeCellsWithValTo(gameData * game, int num) { /*used for exhaustiveBT. c
 
 void printRowSep(gameData * game) {
 	int i;
-	for (i = 0; i < 4 * game->bSize + game->m + 1 /*+ ((game->m + 1)%2)*/ ; i++) {
+	for (i = 0; i < 4 * game->bSize + game->m + 1; i++) {
 		printf("-");
 	}
 	printf("\n");
