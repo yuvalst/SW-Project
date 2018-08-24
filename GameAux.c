@@ -396,10 +396,10 @@ int singleValue(gameData * gameC, int i, int j) {
 			return 0;
 		}
 	}
-	cStart = (i) - ((i) % gameC->m); /*starting col of inner block*/
-	rStart = (j) - ((j) % gameC->n); /*starting row of inner block*/
-	for (c = cStart; c < cStart + gameC->m; c++) {
-		for (r = rStart; r < rStart + gameC->n; r++) {
+	cStart = (i) - ((i) % gameC->n); /*starting col of inner block*/
+	rStart = (j) - ((j) % gameC->m); /*starting row of inner block*/
+	for (c = cStart; c < cStart + gameC->n; c++) {
+		for (r = rStart; r < rStart + gameC->m; r++) {
 			if (gameC->board[c][r] != 0 && values[gameC->board[c][r] - 1] == 1) {
 				values[gameC->board[c][r] - 1] = 0;
 				options--;

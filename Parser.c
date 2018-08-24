@@ -40,15 +40,17 @@ int checkToken(char * cmd){
 
 int getCommand(gameData * game, char ** cmdArr) {
 	char input [cmdLen + 1] = {0};
-	char * cmd, *checkEOF;
+	char * cmd = NULL, * checkEOF = NULL;
 	int i;
-	checkEOF = fgets(input, cmdLen, stdin);
-	if (checkEOF == NULL) {
-		return -1;
+	do {
+		checkEOF = fgets(input, cmdLen, stdin);
+		if (checkEOF == NULL) {
+			return -1;
+		}
+		cmd = strtok(input, DELIMITER);
 	}
-	cmd = strtok(input, DELIMITER);
-	if(cmd == NULL) { return 0; }
-	else if (strcmp(cmd, SOLVE) == 0) {
+	while (cmd == NULL); /*only whitespace*/
+	if (strcmp(cmd, SOLVE) == 0) {
 		cmd = strtok(NULL, DELIMITER);
 		if(checkToken(cmd) == 0) { return 0; } /*invalid command*/
 		solve(game, cmd);
