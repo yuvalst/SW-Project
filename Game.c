@@ -545,7 +545,7 @@ int numSols(gameData * game) {
 
 
 int autofill(gameData * game) {
-	int i, j, first = 1, val = 0;
+	int i, j, first = 1, val = 0, changes = 0, * p;
 	gameData * gameC = NULL;
 	if(game->mode != 1) {
 		printf(ERROR_INV_CMD);
@@ -561,17 +561,22 @@ int autofill(gameData * game) {
 			if (game->board[i][j] == 0) {
 				val = singleValue(gameC, i, j);
 				if (val != 0) {
-					if (first) {
+					if (first) { /*add node to command list*/
 						first = 0;
 						insertAtCurr(game, 3);
 					}
 					addToNode(game, i + 1, j + 1, val, 0);
 					game->board[i][j] = val;
+					changes++;
 					printf(AUTO_SET, i + 1, j + 1, val);
 					game->numEmpty--;
 				}
 			}
 		}
+	}
+	for (i = 0; i < changes; i++) {
+		p = &(game->curr->changes[4*i]);
+		updateSetErrors(game, *p, *(p+1), *(p+2), *(p+3));
 	}
 	printBoard(game);
 	freeGameC(gameC);
