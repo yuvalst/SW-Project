@@ -40,7 +40,8 @@
 #define RESET "Board reset\n"
 #define EXIT "Exiting...\n"
 
-int validate(gameData * game, int p); /*just declaration so functions can call validate*/
+/*void printBoard(gameData * game);*/
+/*int validate(gameData * game, int p);*/ /*just declaration so functions can call validate*/
 
 int solve(gameData * game, char * path) {
 	FILE * gameF;
@@ -72,6 +73,7 @@ int solve(gameData * game, char * path) {
 	}
 	fclose(gameF);
 	updateErrors(game);
+	printBoard(game);
 	return 1;
 }
 
@@ -113,6 +115,7 @@ int edit(gameData * game, char* path) {
 		updateErrors(game);
 		fclose(gameF);
 	}
+	printBoard(game);
 	return 1;
 }
 
