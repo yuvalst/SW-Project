@@ -46,14 +46,13 @@ int checkTokens(char ** cmd, char ** cmdArr, int inputs){
 int getCommand(gameData * game, char ** cmdArr) {
 	char input [cmdLen + 1] = {0};
 	char * cmd = NULL, * checkEOF = NULL;
-	do {
-		checkEOF = fgets(input, cmdLen, stdin);
-		if (checkEOF == NULL) {
-			return -1;
-		}
-		cmd = strtok(input, DELIMITER);
+	checkEOF = fgets(input, cmdLen, stdin);
+	if (checkEOF == NULL) { /*EOF - main exits game*/
+		return -1;
 	}
-	while (cmd == NULL); /*only whitespace*/
+	if ((cmd = strtok(input, DELIMITER)) == NULL) { /*only whitespace*/
+		return 0;
+	}
 	if (strcmp(cmd, SOLVE) == 0) {
 		if (checkTokens(&cmd, cmdArr, 1) == 0) { return 0; }
 		solve(game, cmd);
