@@ -190,39 +190,10 @@ void updateErrors(gameData * game) {
 			colArr[j] = NULL;
 		}
 		for (j = 0; j < game->bSize; ++j) {
-			/*might need to create function inside @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 			rowVal = game->board[j][i];
 			colVal = game->board[i][j];
 			handleError(game, rowArr, j, i, rowVal); /*row check by value*/
 			handleError(game, colArr, i, j, colVal);
-			/*if(rowArr[rowVal]!=NULL){
-				if (*(rowArr[rowVal])==0) {
-					*(rowArr[rowVal]) = 2;
-					errors++;
-				}
-				if (game->board[j+game->bSize][i]==0) {
-					game->board[j+game->bSize][i]=2;
-					errors++;
-				}
-			}
-
-			else if (rowVal != 0) {
-				rowArr[rowVal] = &game->board[j+game->bSize][i];
-			}
-
-			if(colArr[colVal]!=NULL){
-				if (*(colArr[colVal])==0) {
-					*(colArr[colVal])=2;
-					errors++;
-				}
-				if (game->board[i+game->bSize][j]==0) {
-					game->board[i+game->bSize][j]=2;
-					errors++;
-				}
-			}
-			else if (colVal != 0) {
-				colArr[colVal] = &game->board[i+game->bSize][j];
-			}*/
 		}
 	}
 	for (blockI = 0; blockI < game->n; blockI++) {
@@ -234,19 +205,6 @@ void updateErrors(gameData * game) {
 				for (j = blockJ*game->m; j < (blockJ+1)*game->m; j++) {
 					colVal = game->board[i][j];
 					handleError(game, colArr, i, j, colVal);
-					/*if(colArr[colVal]!=NULL){
-						if (*(colArr[colVal])==0) {
-							*(colArr[colVal]) = 2;
-							errors++;
-						}
-						if (game->board[i+game->bSize][j]==0) {
-							game->board[i+game->bSize][j]=2;
-							errors++;
-						}
-					}
-					else if (colVal != 0) {
-						colArr[colVal] = &game->board[i+game->bSize][j];
-					}*/
 				}
 			}
 		}
@@ -396,10 +354,10 @@ int singleValue(gameData * gameC, int i, int j) {
 			return 0;
 		}
 	}
-	cStart = (i) - ((i) % gameC->m); /*starting col of inner block*/
-	rStart = (j) - ((j) % gameC->n); /*starting row of inner block*/
-	for (c = cStart; c < cStart + gameC->m; c++) {
-		for (r = rStart; r < rStart + gameC->n; r++) {
+	cStart = (i) - ((i) % gameC->n); /*starting col of inner block*/
+	rStart = (j) - ((j) % gameC->m); /*starting row of inner block*/
+	for (c = cStart; c < cStart + gameC->n; c++) {
+		for (r = rStart; r < rStart + gameC->m; r++) {
 			if (gameC->board[c][r] != 0 && values[gameC->board[c][r] - 1] == 1) {
 				values[gameC->board[c][r] - 1] = 0;
 				options--;
@@ -414,7 +372,7 @@ int singleValue(gameData * gameC, int i, int j) {
 		for (c = 0; c < gameC->bSize; c++) {
 			if (values[c] == 1) {
 				free(values);
-				return c+1;
+				return c + 1;
 			}
 		}
 	}

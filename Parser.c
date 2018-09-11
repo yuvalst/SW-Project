@@ -30,27 +30,32 @@
 #define EXIT "exit"
 #define ERROR_INV_CMD "ERROR: invalid command\n"
 
-int checkToken(char * cmd){
-	if(cmd == NULL) {
-		printf(ERROR_INV_CMD); /*invalid command*/
-		return 0;
+int checkTokens(char ** cmd, char ** cmdArr, int inputs){
+	int i;
+	for (i = 0; i < inputs; i++) {
+		*cmd = strtok(NULL, DELIMITER);
+		if(*cmd == NULL) {
+			printf(ERROR_INV_CMD); /*invalid command*/
+			return 0;
+		}
+		cmdArr[i] = *cmd;
 	}
 	return 1;
 }
 
 int getCommand(gameData * game, char ** cmdArr) {
 	char input [cmdLen + 1] = {0};
-	char * cmd, *checkEOF;
-	int i;
-	checkEOF = fgets(input, cmdLen, stdin);
-	if (checkEOF == NULL) {
-		return -1;
+	char * cmd = NULL, * checkEOF = NULL;
+	do {
+		checkEOF = fgets(input, cmdLen, stdin);
+		if (checkEOF == NULL) {
+			return -1;
+		}
+		cmd = strtok(input, DELIMITER);
 	}
-	cmd = strtok(input, DELIMITER);
-	if(cmd == NULL) { return 0; }
-	else if (strcmp(cmd, SOLVE) == 0) {
-		cmd = strtok(NULL, DELIMITER);
-		if(checkToken(cmd) == 0) { return 0; } /*invalid command*/
+	while (cmd == NULL); /*only whitespace*/
+	if (strcmp(cmd, SOLVE) == 0) {
+		if (checkTokens(&cmd, cmdArr, 1) == 0) { return 0; }
 		solve(game, cmd);
 	}
 	else if (strcmp(cmd, EDIT) == 0) {
@@ -58,50 +63,27 @@ int getCommand(gameData * game, char ** cmdArr) {
 		edit(game, cmd);
 	}
 	else if (strcmp(cmd, MARK) == 0) {
-		cmd = strtok(NULL, DELIMITER);
-		if(checkToken(cmd) == 0) { return 0; }
-		cmdArr[0] = cmd;
+		if (checkTokens(&cmd, cmdArr, 1) == 0) { return 0; }
 		markErrors(game, cmdArr);
 	}
-	else if (strcmp(cmd, PRINT) == 0) {
-		printBoard(game);
-	}
+	else if (strcmp(cmd, PRINT) == 0) {	printBoard(game); }
 	else if (strcmp(cmd, SET) == 0) {
-		for (i = 0; i < 3; i++) {
-			cmd = strtok(NULL, DELIMITER);
-			if(checkToken(cmd) == 0) { return 0; }
-			cmdArr[i] = cmd;
-		}
+		if (checkTokens(&cmd, cmdArr, 3) == 0) { return 0; }
 		set(game, cmdArr);
 	}
 	else if (strcmp(cmd, VALIDATE) == 0) { validate(game, 1); }
 	else if (strcmp(cmd, GENERATE) == 0) {
-		for (i = 0; i < 2; i++) {
-			cmd = strtok(NULL, DELIMITER);
-			if(checkToken(cmd) == 0) {
-				return 0;
-			}
-			cmdArr[i] = cmd;
-		}
+		if (checkTokens(&cmd, cmdArr, 2) == 0) { return 0; }
 		generate(game, cmdArr);
 	}
 	else if (strcmp(cmd, UNDO) == 0) { undo(game, 1); }
 	else if (strcmp(cmd, REDO) == 0) { redo(game); }
 	else if (strcmp(cmd, SAVE) == 0) {
-		cmd = strtok(NULL, DELIMITER);
-		if(checkToken(cmd) == 0) {
-			return 0;
-		}
+		if (checkTokens(&cmd, cmdArr, 1) == 0) { return 0; }
 		save(game, cmd);
 	}
 	else if (strcmp(cmd, HINT) == 0) {
-		for (i = 0; i < 2; i++) {
-			cmd = strtok(NULL, DELIMITER);
-			if(checkToken(cmd) == 0) {
-				return 0;
-			}
-			cmdArr[i] = cmd;
-		}
+		if (checkTokens(&cmd, cmdArr, 2) == 0) { return 0; }
 		hint(game, cmdArr);
 	}
 	else if (strcmp(cmd, SOLS) == 0) { numSols(game); }

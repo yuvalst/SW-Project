@@ -25,10 +25,10 @@ int main(void) {
 	printf(SUDOKU);
 	seed = time(NULL);
 	srand(seed);
-	while (run!=-1) {
+	while (run != -1) {
 		printf(ENTER_CMD);
 		run = getCommand(game, cmdArr);
-		/*fseek(stdin,0,SEEK_END);*/ /*flush stdin*/
+		/*fseek(stdin,0,SEEK_END);*/  /*flush stdin*/
 	}
 	exitGame(game);
 	return 1;
