@@ -28,7 +28,6 @@ int main(void) {
 	while (run != -1) {
 		printf(ENTER_CMD);
 		run = getCommand(game, cmdArr);
-		/*fseek(stdin,0,SEEK_END);*/  /*flush stdin*/
 	}
 	exitGame(game);
 	return 1;

@@ -18,6 +18,7 @@
 #define ERROR_SOL "Puzzle solution erroneous\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
 #define ALLOC_FAILED "Memory allocation failed\n"
+#define cmdLen 256
 
 void checkAlloc(void * p) { /*check memory allocations*/
 	if (p == NULL) {
@@ -458,3 +459,4 @@ int exhaustiveBT(gameData * gameC) {
 	freeStack(stk);
 	return counter;
 }
+
