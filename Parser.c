@@ -63,7 +63,7 @@ int getCommand(gameData * game, char ** cmdArr) {
 	if (checkEOF == NULL) { /*EOF - main exits game*/
 		return -1;
 	}
-	if (checkLine(input) == 0) {
+	if (checkLine(input) == 0) { /*check if command exceeds 256 chars*/
 		return 0;
 	}
 	cmd = strtok(input, DELIMITER);
