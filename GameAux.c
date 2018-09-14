@@ -460,3 +460,49 @@ int exhaustiveBT(gameData * gameC) {
 	return counter;
 }
 
+void fillXcells(gameData * game, int x, int * res) {
+	int  k, f, i, j, numOfOnes, options = game->bSize;
+	int * values;
+	values = (int *)calloc(game->bSize, sizeof(int));
+	checkAlloc(values);
+	*res = 1;
+	for (f = 0; f < x; f++) { /*find x random cells to fill with valid values*/
+		options = game->bSize;
+		for (k = 0; k < game->bSize; k++) {
+			values[k] = 1;
+		}
+		do {
+			i = (rand() % game->bSize);
+			j = (rand() % game->bSize);
+		}
+		while (game->board[i][j] != 0); /*find empty cell*/
+		while (options > 0) { /*while still have value options*/
+			numOfOnes = (rand() % options) + 1; /*choose random value index*/
+			for (k = 1; k <= game->bSize; k++) {
+				if (values[k - 1] == 1) {
+					numOfOnes--;
+				}
+				if (numOfOnes == 0) { /*found the random chosen index of the value*/
+					break;
+				}
+			}
+			if (checkValid(game, i + 1, j + 1, k)) { /*random value is valid*/
+				game->board[i][j] = k;
+				break;
+			}
+			values[k - 1] = 0; /*random value isn't an option anymore for this cell*/
+			options--; /*one less option*/
+		}
+		if(game->board[i][j] == 0) { /*couldn't find random valid value*/
+			for(i = 0; i < game->bSize; i++) {
+				for(j = 0; j < game->bSize; j++) { /*clear board*/
+					game->board[i][j] = 0;
+				}
+			}
+			res = 0;
+			break;
+		}
+	}
+	free(values);
+}
+
