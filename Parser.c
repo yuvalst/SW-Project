@@ -55,9 +55,9 @@ int checkLine(char input []) {
 }
 
 
-int getCommand(gameData * game, char ** cmdArr) {
+int getCommand(gameData * game) {
 	char input [cmdLen + 1] = {0};
-	char * cmd = NULL, * checkEOF = NULL;
+	char * cmd = NULL, * cmdArr[3], * checkEOF = NULL;
 	int res = 0;
 	checkEOF = fgets(input, cmdLen, stdin);
 	if (checkEOF == NULL) { /*EOF - main exits game*/

@@ -20,14 +20,14 @@
 int main(void) {
 	int run = 1;
 	time_t seed;
-	char * cmdArr[3];
+	/*char * cmdArr[3];*/
 	gameData * game = initGame();
 	printf(SUDOKU);
 	seed = time(NULL);
 	srand(seed);
 	while (run != -1) {
 		printf(ENTER_CMD);
-		run = getCommand(game, cmdArr);
+		run = getCommand(game);
 	}
 	exitGame(game);
 	return 1;
