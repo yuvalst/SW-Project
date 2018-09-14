@@ -15,13 +15,15 @@
 #include "Game.h"
 
 /*
- * Receives the input from stdin and parsers it, then passing it to the different game functions accordingly or acts if something is wrong
+ * Receives the input from stdin and parsers it, then passes it to the different game functions accordingly or acts if something is wrong
  * syntacticly. Works with command lines of up to 256 chars (including).
  *
  * @param game - Game structure holding all the game data.
- * @param cmdArr -
+ *
  * @return
- * 	pointer to the new board
+ * 	1 - if parsing succeeded and function was called.
+ * 	0 - if there was an invalid command
+ * 	-1 - if EOF or "exit"
  */
 int getCommand(gameData * game);
 

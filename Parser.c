@@ -1,8 +1,6 @@
 /*
  * Parser.c
  *
- *  Created on: 23 Jul 2018
- *      Author: guywaldman
  */
 
 #include <string.h>
@@ -30,6 +28,19 @@
 #define EXIT "exit"
 #define ERROR_INV_CMD "ERROR: invalid command\n"
 
+
+/*
+ * Used by getCommand() to check if there are enough arguments in the input buffer for the command called. If so, adds them to cmdArr.
+ *
+ * @param cmd - Pointer to string used by getCommand().
+ * @param cmdArr - String array used by getCommand() to pass arguments to the different game functions.
+ * @param inputs - number of arguments expected.
+ * @param res - pointer to int used by getCommand() to return to the main function.
+ *
+ * @return
+ * 	1 - if there are enough arguments.
+ * 	0 - if there were less than expected arguments.
+ */
 int checkTokens(char ** cmd, char ** cmdArr, int inputs, int * res){
 	int i;
 	for (i = 0; i < inputs; i++) {
@@ -45,21 +56,44 @@ int checkTokens(char ** cmd, char ** cmdArr, int inputs, int * res){
 	return 1;
 }
 
+/*
+ * Used by getCommand() to check if the command line from the user passes 256 chars or not. if so, prints that the command is invalid and clears the line
+ * until \n.
+ *
+ * @param input - Input buffer from getCommand() holding the command line brought by fgets().
+ *
+ * @return
+ * 	1 - if the line is less than 257 chars.
+ * 	0 - else
+ */
 int checkLine(char input []) {
-	if (!strchr(input, '\n')) { /*line has more tham 256 chars*/
+	if (!strchr(input, '\n')) { /*line has more than 256 chars because '\n' isn't found in the first 256 chars*/
 		printf(ERROR_INV_CMD);
-		while (!strchr(input,'\n') && fgets(input, cmdLen, stdin)) { }
+		while (!strchr(input,'\n') && fgets(input, cmdLen, stdin)) { } /*clear input buffer*/
 		return 0;
 	}
 	return 1;
 }
 
-
+/*
+ * Receives the input from stdin and parsers it, then passes it to the different game functions accordingly or acts if something is wrong
+ * syntacticly. Works with command lines of up to 256 chars (including).
+ * First checks if there was EOF at the beginning of the line using fgets. If so, returns -1 for main to exit game.
+ * Then checks if line doesn't exceed 256 chars.
+ * If not, handles whitespace line or calls game function needed (checks if there are enough "tokens" before).
+ *
+ * @param game - Game structure holding all the game data.
+ *
+ * @return
+ * 	1 - if parsing succeeded and function was called.
+ * 	0 - if there was an invalid command
+ * 	-1 - if EOF or "exit"
+ */
 int getCommand(gameData * game) {
 	char input [cmdLen + 1] = {0};
 	char * cmd = NULL, * cmdArr[3], * checkEOF = NULL;
 	int res = 0;
-	checkEOF = fgets(input, cmdLen, stdin);
+	checkEOF = fgets(input, cmdLen, stdin); /*get 256 chars from stdin into input char array*/
 	if (checkEOF == NULL) { /*EOF - main exits game*/
 		return -1;
 	}
