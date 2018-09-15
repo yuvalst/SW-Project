@@ -1,8 +1,11 @@
 /*
- * Parser.h
+ * Parser Summary:
  *
- *  Created on: 16 Aug 2018
- *      Author: guywaldman
+ * Functions used to receive input from the user and pass it on to the relevant command function.
+ *
+ * getCommand - Receives the input from stdin and parsers it, then passing it to the different game functions accordingly or acts if something is wrong
+ * syntacticly. Works with command lines of up to 256 chars (including).
+ *
  */
 
 #ifndef PARSER_H_
@@ -10,6 +13,18 @@
 
 #include "Game.h"
 
-int getCommand(gameData * game, char ** cmdArr);
+/*
+ * Receives the input from stdin and parsers it, then passes it to the different game functions accordingly or acts if something is wrong
+ * syntacticly. Works with command lines of up to 256 chars (including).
+ *
+ * @param game - Game structure holding all the game data.
+ *
+ * @return
+ * 	1 - if parsing succeeded and function was called.
+ * 	0 - if there was an invalid command
+ * 	-1 - if EOF or "exit"
+ */
+int getCommand(gameData * game);
+
 
 #endif /* PARSER_H_ */

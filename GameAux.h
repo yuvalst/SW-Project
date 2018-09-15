@@ -28,6 +28,7 @@ int checkIfSolved(gameData * game);
 int singleValue(gameData * gameC, int i, int j);
 int ilpSolver(gameData * game);
 int exhaustiveBT(gameData * gameC);
+void fillXcells(gameData * game, int x, int * res);
 
 
 
