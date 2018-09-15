@@ -269,7 +269,7 @@ int generate(gameData * game, char ** cmdArr) {
 		for (f = 0; f < y;) { /*find random y cells to keep*/
 			i = (rand() % game->bSize);
 			j = (rand() % game->bSize);
-			if (game->board[i + game->bSize][j] != 3) { /*3 will mark if we pick that cell*/
+			if (game->board[i + game->bSize][j] != 3) { /*3 will mark if we keep that cell*/
 				game->board[i + game->bSize][j] = 3;
 				addToNode(game, i + 1, j + 1, game->board[i][j], 0);
 				f++;
@@ -277,15 +277,15 @@ int generate(gameData * game, char ** cmdArr) {
 		}
 		for(i = 0; i < game->bSize; i++) {
 			for(j = 0; j < game->bSize; j++) {
-				if (game->board[i + game->bSize][j] != 3) {
+				if (game->board[i + game->bSize][j] != 3) { /*cell wasn't picked so we erase its value*/
 					game->board[i][j] = 0;
 				}
 				else {
-					game->board[i + game->bSize][j] = 0;
+					game->board[i + game->bSize][j] = 0; /*cell was picked so we leave the value and reset its status*/
 				}
 			}
 		}
-		game->numEmpty = (game->bSize * game->bSize) - y;
+		game->numEmpty = (game->bSize * game->bSize) - y; /*update number of empty cells*/
 		printBoard(game);
 		break;
 	}
