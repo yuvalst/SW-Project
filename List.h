@@ -20,10 +20,12 @@
 		node * prev;
 };
 
-
- void clearToEnd(node ** head);
+/*Recieves a pointer to node and clears it and all the node after*/
+void clearToEnd(node ** head);
+/*Recieves a pointer to node and clears it and all the node after*/
 void addToNode(gameData * game, int x, int y, int z, int type);
 void insertAtCurr(gameData * game, int cmd);
+/*Frees the list from the head*/
 void freeList(gameData * game);
 
 #endif /* LIST_H_ */
