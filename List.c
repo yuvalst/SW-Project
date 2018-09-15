@@ -67,6 +67,7 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	}
 }
 
+/*Recieves a pointer to node and clears it and all the node after*/
 void clearToEnd(node ** head) {
 	node * tail = *head;
 	node * temp = NULL;
@@ -103,7 +104,7 @@ void insertAtCurr(gameData * game, int cmd) {
 
 
 
-
+/*Frees the list from the head*/
 void freeList(gameData * game) {
 	if (game->head != NULL) {
 		clearToEnd(&game->head);
