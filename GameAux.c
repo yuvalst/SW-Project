@@ -20,6 +20,7 @@
 #define ALLOC_FAILED "Memory allocation failed\n"
 #define cmdLen 256
 
+/*checks memory allocation for the pointer p*/
 void checkAlloc(void * p) { /*check memory allocations*/
 	if (p == NULL) {
 		printf(ALLOC_FAILED);
@@ -27,7 +28,7 @@ void checkAlloc(void * p) { /*check memory allocations*/
 	}
 }
 
-
+/*used to initialize the new gameData object*/
 gameData * initGame() {
 	gameData * game = (gameData*)malloc(sizeof(gameData));
 	checkAlloc(game);
@@ -55,6 +56,7 @@ void freeBoard(gameData * game) {
 	}
 }
 
+/*used to free the memory of a gameData object*/
 void freeGame(gameData* game) {
 	freeBoard(game);
 	freeList(game);
@@ -75,6 +77,7 @@ int ** initBoard(int bSize, int multi) {
 }
 
 
+/*used to free the memory of a gameData object and also the pointer gameC*/
 void freeGameC(gameData * gameC) {
 	freeGame(gameC);
 	if (gameC != NULL) {
@@ -83,6 +86,7 @@ void freeGameC(gameData * gameC) {
 	}
 }
 
+/*Receives pointer to gameC and game and copys the gameData of game to gameC*/
 void copyGame(gameData ** gameC, gameData * game) {
 	int i, j;
 	*gameC = (gameData *)malloc(sizeof(gameData));
@@ -104,8 +108,7 @@ void copyGame(gameData ** gameC, gameData * game) {
 	(*gameC)->curr = NULL;
 }
 
-
-
+/*Receives the game data and int for mode and create a board and mode that matches to the data*/
 void newGame(gameData * game, int mode) {
 	if (game->board != NULL) {
 		freeGame(game); /*free board and list*/
@@ -131,6 +134,7 @@ void ChangeCellsWithValTo(gameData * game, int num) { /*used for exhaustiveBT. c
 }
 
 
+/*prints row seperator*/
 void printRowSep(gameData * game) {
 	int i;
 	for (i = 0; i < 4 * game->bSize + game->m + 1; i++) {
@@ -140,6 +144,7 @@ void printRowSep(gameData * game) {
 }
 
 
+/*Receives game,x,y,z - if z is valid number for cell[x,y] in game.board the funciton will return 1 else 0*/
 int checkValid(gameData * game, int x, int y, int z) {
 	int i, j, cStart, rStart;
 	int** board = game->board;
@@ -179,6 +184,7 @@ void handleError(gameData * game, int ** Arr, int i, int j, int Val) {
 	}
 }
 
+/*Receives game and updates the cell with errors and the error count*/
 void updateErrors(gameData * game) {
 	int i, j, rowVal, colVal, blockJ, blockI, **rowArr = NULL, **colArr = NULL;
 	rowArr = (int**)calloc(game->bSize +1 ,sizeof(int*));
@@ -270,6 +276,7 @@ int updateSetErrors(gameData * game, int x, int y, int prev, int z) {
 	return 1;
 }
 
+/*updates numEmpty after value change*/
 void updateEmpty(gameData * game, int prev, int z) {
 	if (z != 0) {
 			if (prev == 0) {
@@ -284,6 +291,7 @@ void updateEmpty(gameData * game, int prev, int z) {
 }
 
 
+/*checks if string represnt an int if true returns 1 else 0*/
 int checkInt(char * cmd) {
 	while(*cmd != '\0') {
 		if(*cmd < 48 || *cmd > 57) {
@@ -294,6 +302,7 @@ int checkInt(char * cmd) {
 	return 1;
 }
 
+/*Receives command array, min, max and len*/
 int checkArgs(char ** cmdArr, int min, int max, int len) {
 	int i;
 	for (i=0; i < len; i++){
@@ -310,6 +319,7 @@ int checkArgs(char ** cmdArr, int min, int max, int len) {
 	return 1;
 }
 
+/*return 1 if cell[x,y] in game.board is fixed else 0*/
 int checkFixed(gameData * game, int x, int y) {
 	if (game->mode == 1 && game->board[x + game->bSize - 1][y - 1] == 1) { /*only in solve mode*/
 		return 1;
@@ -317,6 +327,7 @@ int checkFixed(gameData * game, int x, int y) {
 	return 0;
 }
 
+/*return 1 if the puzzle is solved else 0*/
 int checkIfSolved(gameData * game) {
 	if (game->numEmpty == 0 && game->mode == 1) {
 		if (!validate(game, 0)) {
@@ -334,6 +345,7 @@ int checkIfSolved(gameData * game) {
 
 
 
+/*returns 1 if game.board[i,j] has only 1 valid value else 0*/
 int singleValue(gameData * gameC, int i, int j) {
 	int options = gameC->bSize, r = 0, c = 0, cStart, rStart;
 	int * values = (int*)calloc(gameC->bSize, sizeof(int));
@@ -381,14 +393,17 @@ int singleValue(gameData * gameC, int i, int j) {
 	return 0;
 }
 
+/*returns 1 if the board is solvable else 0 - check is made with gurobi_solver()*/
 int ilpSolver(gameData * game) {
 	return gurobi_solver(game);
 }
 
-/*	dir == 1 to go forward
-	dir == -1 to go backward
-	i is column
-	j is row					*/
+/*
+moves i,j in the direction z
+dir == 1 to go forward
+dir == -1 to go backward
+i is column
+j is row*/
 void btMove(gameData * game,int * i, int * j, int dir, stack * stk, int* cell) {
 	if (dir == 1) {
 		if (*i == game->bSize - 1) { /*end of row*/
@@ -417,6 +432,7 @@ void btMove(gameData * game,int * i, int * j, int dir, stack * stk, int* cell) {
 	}
 }
 
+/*returns the number of possible board solutions*/
 int exhaustiveBT(gameData * gameC) {
 	int i = 0, j = 0, k, counter=0 ,dir=1, valid = 0;
 	int cell[3] = {0};
@@ -460,6 +476,8 @@ int exhaustiveBT(gameData * gameC) {
 	return counter;
 }
 
+/*Receives game, number of cells to fill, and int pointer to the result, 
+the funciton returns 1 if filling x cells with random values succeeded*/
 void fillXcells(gameData * game, int x, int * res) {
 	int  k, f, i, j, numOfOnes, options = game->bSize;
 	int * values;
