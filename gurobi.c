@@ -7,7 +7,7 @@
 
 #define GUR_ERROR "Gurobi error! Exiting\n"
 
-
+/*adds constraints for each fixed cell*/
 int addFixedConstraints (gameData * game, GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS) {
 	int i, j, v;
 	for (i = 0; i < bS; i++) {
@@ -28,6 +28,7 @@ int addFixedConstraints (gameData * game, GRBenv ** env, GRBmodel ** model, int 
 	return 1;
 }
 
+/* modular constraints for row, column or cell value*/
 int addConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS, int a, int b, int c) {
 	int i, j, v;
 	for (i = 0; i < bS; i++) {
@@ -45,7 +46,7 @@ int addConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, do
 	}
 	return 1;
 }
-
+/*adds constraints for each block of cells*/
 int addBlockConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS, int cols, int rows) {
 	int i, j, v, blockRow, blockCol, count;
 	for (v = 0; v < bS; v++) {
