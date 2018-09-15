@@ -40,15 +40,17 @@
 #define RESET "Board reset\n"
 #define EXIT "Exiting...\n"
 
-/*void printBoard(gameData * game);*/
-/*int validate(gameData * game, int p);*/ /*just declaration so functions can call validate*/
 
+/*
+ * Opens the file given by the path from the user (received from getCommand()). Goes over the file with fscanf and inserts the data into
+ * game. After inputing the data, checks the board for errors and prints the board.
+ */
 int solve(gameData * game, char * path) {
 	FILE * gameF;
 	int cell, i, j;
 	char c;
 	gameF = fopen(path, "r");
-	if (gameF == NULL) {
+	if (gameF == NULL) { /*error opening file*/
 		printf(ERROR_FILE);
 		return 0;
 	}
@@ -56,8 +58,8 @@ int solve(gameData * game, char * path) {
 	fscanf(gameF, "%d", &(game->n));
 	game->bSize = game->m * game->n;
 	newGame(game, 1); /*frees current game resources, builds new board according to bSize, changes mode to 1 (solve)*/
-	if (game->head == NULL) {
-		insertAtCurr(game, 2); /*dummy head node*/
+	if (game->head == NULL) { /*list wasn't initialized before*/
+		insertAtCurr(game, 2); /*dummy list head node*/
 	}
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
@@ -72,22 +74,26 @@ int solve(gameData * game, char * path) {
 		}
 	}
 	fclose(gameF);
-	updateErrors(game);
+	updateErrors(game); /*check for erroneous cells*/
 	printBoard(game);
 	return 1;
 }
 
-
+/*
+ * Opens the file given by the path from the user (received from getCommand()). If no file was given, creates a 9x9 empty board.
+ * Else, goes over the file with fscanf and inserts the data into game.
+ * After inputing the data, checks the board for errors and prints the board.
+ */
 int edit(gameData * game, char* path) {
 	FILE * gameF;
 	char c = 0;
 	int i, j;
-	if (path == NULL) { /*create empty 9x9 board*/
+	if (path == NULL) { /*no path given, create empty 9x9 board*/
 		game->m = 3;
 		game->n = 3;
 		game->bSize = 9;
-		newGame(game, 2);
-		if (game->head == NULL) {
+		newGame(game, 2); /*frees current game resources, builds new board according to bSize, changes mode to 2 (edit)*/
+		if (game->head == NULL) { /*list wasn't initialized before*/
 			insertAtCurr(game, 2); /*dummy head node*/
 		}
 	}
@@ -101,7 +107,7 @@ int edit(gameData * game, char* path) {
 		fscanf(gameF, "%d", &game->n);
 		game->bSize = game->m * game->n;
 		newGame(game, 2);
-		if (game->head == NULL) {
+		if (game->head == NULL) { /*list wasn't initialized before*/
 			insertAtCurr(game, 2); /*dummy head node*/
 		}
 		for(j = 0; j < game->bSize; j++) {
@@ -119,14 +125,16 @@ int edit(gameData * game, char* path) {
 	return 1;
 }
 
-
+/*
+ * Check if game mode and argument are correct. If so, changed mark field accordingly. Else, prints relevant messages.
+ */
 int markErrors(gameData * game, char ** cmdArr) {
 	int i;
 	if (game->mode != 1) {
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkInt(cmdArr[0])) {/*check if valid int*/
+	if (!checkInt(cmdArr[0])) { /*check if valid int*/
 		printf(ERROR_MARK_ERRORS);
 		return 0;
 	}
@@ -144,26 +152,29 @@ int markErrors(gameData * game, char ** cmdArr) {
 	return 1;
 }
 
+/*
+ * Every m rows prints a row separator and every n cols prints a block separator. Prints every cell according to the mode and its status and current mode.
+ */
 void printBoard(gameData * game) {
 	int i, j;
 	for (j = 0; j < game->bSize; j++) {
 		if (j % game->m == 0) {
-			printRowSep(game);
+			printRowSep(game); /*row separator*/
 		}
 		for (i = 0; i < game->bSize; i++) {
 			if (i % game->n == 0) {
 				printf("|");
 			}
-			if (game->board[i][j] == 0) {
+			if (game->board[i][j] == 0) { /*empty cell*/
 				printf("    ");
 				continue;
 			}
 			printf(" %2d", game->board[i][j]);
-			if (game->mode == 1 && game->board[i + game->bSize][j] == 1) {
+			if (game->mode == 1 && game->board[i + game->bSize][j] == 1) { /*fixed cell in solve mode*/
 				printf(".");
 			}
-			else if (game->board[i + game->bSize][j] == 2) {
-				if ((game->mode == 1 && game->mark == 1) || game->mode == 2) {
+			else if (game->board[i + game->bSize][j] == 2) { /*erroneous cell*/
+				if ((game->mode == 1 && game->mark == 1) || game->mode == 2) { /*solve with mark_errors = 1 or edit*/
 					printf("*");
 				}
 				else if (game->mark == 0) {
@@ -176,10 +187,13 @@ void printBoard(gameData * game) {
 		}
 		printf("|\n");
 	}
-	printRowSep(game);
+	printRowSep(game); /*row separator for end of board*/
 }
 
-
+/*
+ * Checks the relevant fields and status. Changes board, adds a node to the command list and adds the relevant data to it. Updates errors, number of
+ * empty cells and checks if board is solved.
+ */
 int set(gameData * game, char ** cmdArr) {
 	int x, y, z, prev;
 	if (game->mode != 1 && game->mode != 2) {
@@ -192,91 +206,99 @@ int set(gameData * game, char ** cmdArr) {
 	}
 	x = atoi(cmdArr[0]);
 	y = atoi(cmdArr[1]);
-	prev = game->board[x-1][y-1];
+	prev = game->board[x-1][y-1]; /*save value before change to insert it to the list node*/
 	z = atoi(cmdArr[2]);
-	if (game->mode == 1 && checkFixed(game, x, y)) {
+	if (game->mode == 1 && checkFixed(game, x, y)) { /*fixed cell in solve mode*/
 		printf(ERROR_FIXED);
 		return 0;
 	}
-	insertAtCurr(game, 1); /*clear all next moves and mark this "set" as current one*/
-	addToNode(game, x, y, z, 0);
+	insertAtCurr(game, 1); /*clear all next moves in the list and change curr to this "set" command*/
+	addToNode(game, x, y, z, 0); /*save the needed data in the list node*/
 	game->board[x-1][y-1] = z;
-	updateSetErrors(game, x, y, prev, z); /*if current set caused/solved an error mark the cells accordingly and update curr node in list. also update errors field*/
-	updateEmpty(game, prev, z);
+	updateSetErrors(game, x, y, prev, z); /*if current set caused/solved an error, mark the cells accordingly and update curr node in list. Also update errors field*/
+	updateEmpty(game, prev, z); /*update number of empty cells if changed*/
 	printBoard(game);
-	checkIfSolved(game);
+	checkIfSolved(game); /*check if board is full and if solved or not*/
 	return 1;
 }
 
-
+/*
+ * Creates a copy of the game to try to solve it and prints accordingly.
+ */
 int validate(gameData * game, int p) { /*p tells us to print*/
+	int res = 0;
 	gameData * gameC = NULL;
 	if(game->mode==0) { /*not in edit or solve mode*/
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	else if (game->errors != 0) {
+	else if (game->errors != 0) { /*board has erroneous cells*/
 		if (p) {
 			printf(ERROR_VALUES);
 		}
 		return 0;
 	}
-	copyGame(&gameC, game);
-	if (ilpSolver(gameC)) {
+	copyGame(&gameC, game); /*make a copy of the game*/
+	if (ilpSolver(gameC)) { /*try to solve the copy, if solvable*/
 		if (p) {
 			printf(VAL_PASSED);
 		}
-		freeGameC(gameC);
-		return 1;
+		res = 1;
 	}
-	else{
+	else{ /*not solvable*/
 		if (p) {
 			printf(VAL_FAILED);
 		}
-		freeGameC(gameC);
-		return 0;
+		res = 0;
 	}
+	freeGameC(gameC);
+	return res;
 }
 
+/*
+ * First checks if in edit mode, arguments are legal and board is empty. Then tries to fill X cells by calling fillXcells() (up to 1000 tries).
+ * If succeeded, goes on to solve the board and pick Y cells to keep their value. Updates number of empty cells and prints board.
+ */
 int generate(gameData * game, char ** cmdArr) {
 	int x, y, i, j, f, try, res;
-	if(game->mode!=2) { /*not in edit mode*/
+	if(game->mode!=2) { /*if not in edit mode*/
 		printf(ERROR_INV_CMD);
 		return 0;
 	}
-	if (!checkArgs(cmdArr, 0, game->bSize * game->bSize, 2)) {
+	if (!checkArgs(cmdArr, 0, game->bSize * game->bSize, 2)) { /* if X and Y are not valid ints or are not in range*/
 		printf(ERROR_VALUE_RANGE, 0, game->bSize * game->bSize);
 		return 0;
 	}
-	if(game->numEmpty != game->bSize * game->bSize) { /*if board isn't empty*/
+	if (game->numEmpty != game->bSize * game->bSize) { /*if board isn't empty*/
 		printf(ERROR_NOT_EMPTY);
 		return 0;
 	}
 	x = atoi(cmdArr[0]);
 	y = atoi(cmdArr[1]);
 	for (try = 0; try < 1000; try++) { /*1000 tries*/
-		fillXcells(game, x, &res);
-		if(res == 1) { /*was able to fill x cells*/
-			res = ilpSolver(game);
+		fillXcells(game, x, &res); /*try to fill X cells with random legal values and update res to 1 if succeeded*/
+		if (res == 1) { /*was able to fill x cells*/
+			res = ilpSolver(game); /*solve the board*/
 		}
-		if(res == 0) { /*board unsolvable*/
-			if(try == 999) {
+		if (res == 0) { /*board unsolvable*/
+			if(try == 999) { /*passed 1000 tries without succeeding*/
 				printf(ERROR_GENERATE);
 			}
-			continue;
+			continue; /*will exit the loop on 1000th try*/
 		}
-		insertAtCurr(game, 2); /*new cmd node in list*/
+		/*succeeded filling X cells*/
+		insertAtCurr(game, 2); /*add new command node to list*/
 		for (f = 0; f < y;) { /*find random y cells to keep*/
 			i = (rand() % game->bSize);
 			j = (rand() % game->bSize);
 			if (game->board[i + game->bSize][j] != 3) { /*3 will mark if we keep that cell*/
 				game->board[i + game->bSize][j] = 3;
-				addToNode(game, i + 1, j + 1, game->board[i][j], 0);
+				addToNode(game, i + 1, j + 1, game->board[i][j], 0); /*add the data to command node*/
 				f++;
 			}
 		}
-		for(i = 0; i < game->bSize; i++) {
-			for(j = 0; j < game->bSize; j++) {
+		for (i = 0; i < game->bSize; i++) { /*go over the board and act according to the 3s*/
+			for (j = 0; j < game->bSize; j++) {
 				if (game->board[i + game->bSize][j] != 3) { /*cell wasn't picked so we erase its value*/
 					game->board[i][j] = 0;
 				}
@@ -291,6 +313,7 @@ int generate(gameData * game, char ** cmdArr) {
 	}
 	return res;
 }
+
 
 int undo(gameData * game, int p) { /*p tells us if prints are needed*/
 	int x, y, prevZ, z, i; /*z is current value, prevZ is the one we are changing to*/

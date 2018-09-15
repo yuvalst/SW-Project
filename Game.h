@@ -34,15 +34,15 @@ typedef struct node node;
 /* Game data structure used to hold all the relevant information*/
 typedef struct gameData {
 	int mode; /*0 - init, 1 - solve, 2 - edit*/
-	int mark;
-	int errors;
-	int m;
-	int n;
-	int bSize;
+	int mark; /*for knowing if need to show * on erroneous cells*/
+	int errors; /*a count of the number of erroneous cells in the board*/
+	int m; /*number of rows of each inner block*/
+	int n; /*number of cols of each inner block*/
+	int bSize; /*m multiplied by n, length of borders of the board*/
 	int numEmpty; /*number of empty cells*/
-	int ** board;
-	node * head;
-	node * curr;
+	int ** board; /*game board multi-dimensional array*/
+	node * head; /*head of list of commands*/
+	node * curr; /*current node of list of commands*/
 }gameData;
 
 
