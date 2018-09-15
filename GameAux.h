@@ -11,6 +11,7 @@
 #include "Game.h"
 
 void checkAlloc(void * p);
+/*used to initialize the new game object*/
 gameData * initGame();
 void freeGame(gameData* game);
 void freeGameC(gameData * gameC);
