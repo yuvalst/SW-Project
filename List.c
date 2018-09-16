@@ -1,12 +1,8 @@
 /*
  * List.c
- *
- *  Created on: 23 Jul 2018
- *      Author: guywaldman
  */
 
 
-/* Doubly Linked List implementation */
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -15,7 +11,7 @@
 
 
 
-/*Creates a new Node and returns pointer to it*/
+/*Creates a new Node and returns pointer to it. Used by insertAtCurr.*/
 node * createNode() {
 	node * newNode = (node*)malloc(sizeof(node));
 	checkAlloc(newNode);
@@ -28,10 +24,10 @@ node * createNode() {
 	return newNode;
 }
 
-/*call this function before changing the gameboard*/
+
 void addToNode(gameData * game, int x, int y, int z, int type) {
 	if (type == 0) { /*change in board cell*/
-		if (game->curr->changes == NULL){
+		if (game->curr->changes == NULL){ /*wasn't allocated already*/
 			game->curr->changes = (int *)malloc(4 * sizeof(int));
 			checkAlloc(game->curr->changes);
 		}
@@ -41,7 +37,7 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 		}
 		game->curr->changes[4 * game->curr->numOfChanges] = x;
 		game->curr->changes[(4 * game->curr->numOfChanges) + 1] = y;
-		if(game->curr->cmd == 2) { /*was generate cmd, ilp already changed board*/
+		if(game->curr->cmd == 2) { /*was generate command, so ilp already changed board*/
 			game->curr->changes[(4 * game->curr->numOfChanges) + 2] = 0;
 		}
 		else { /*set or autofill*/
@@ -50,8 +46,8 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 		game->curr->changes[(4 * game->curr->numOfChanges) + 3] = z;
 		game->curr->numOfChanges++;
 	}
-	else { /*error created/solved*/
-		if (game->curr->errorChanges == NULL){
+	else { /*change in cell status - error created/solved*/
+		if (game->curr->errorChanges == NULL){ /*wasn't allocated already*/
 			game->curr->errorChanges = (int *)malloc(4 * sizeof(int));
 			checkAlloc(game->curr->errorChanges);
 		}
@@ -67,17 +63,17 @@ void addToNode(gameData * game, int x, int y, int z, int type) {
 	}
 }
 
-/*Recieves a pointer to node and clears it and all the node after*/
+
 void clearToEnd(node ** head) {
 	node * tail = *head;
 	node * temp = NULL;
-	while (tail != NULL) {
+	while (tail != NULL) { /*keep erasing to the end*/
 		temp = tail->next;
-		if (tail->changes != NULL) {
+		if (tail->changes != NULL) { /*free array of changes*/
 			free((tail)->changes);
 			tail->changes = NULL;
 		}
-		if (tail->errorChanges != NULL) {
+		if (tail->errorChanges != NULL) { /*free array of error changes*/
 			free(tail->errorChanges);
 			tail->errorChanges = NULL;
 		}
@@ -87,7 +83,7 @@ void clearToEnd(node ** head) {
 	*head = NULL;
 }
 
-/*Inserts a Node at head of doubly linked list*/
+
 void insertAtCurr(gameData * game, int cmd) {
 	struct node * newNode = createNode();
 	newNode->cmd = cmd;
@@ -111,21 +107,4 @@ void freeList(gameData * game) {
 	}
 }
 
-/*
-Prints all elements in linked list in reverse traversal order.
-void ReversePrint() {
-	struct Node* temp = head;
-	if(temp == NULL) return; // empty list, exit
-	// Going to last Node
-	while(temp->next != NULL) {
-		temp = temp->next;
-	}
-	// Traversing backward using prev pointer
-	printf("Reverse: ");
-	while(temp != NULL) {
-		printf("%d ",temp->data);
-		temp = temp->prev;
-	}
-	printf("\n");
-}
-*/
+
