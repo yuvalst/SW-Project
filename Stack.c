@@ -3,6 +3,7 @@
  *
  * Module representing the stack used for exhaustiveBT.
  * each cell is represented by 3 ints in stk->arr which represnt x,y nad value
+ * the stack object has 2 ints to represnt when and whats the current last cell
  */
 
 #include <string.h>
