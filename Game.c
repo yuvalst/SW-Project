@@ -463,7 +463,6 @@ int save(gameData * game, char * path) {
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			check = fprintf(gameF, "%d", game->board[i][j]);
-			printf("check: %d\n", check);
 			if (!checkPrint(check)) {
 				return 0;
 			}
