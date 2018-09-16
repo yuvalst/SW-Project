@@ -176,6 +176,10 @@ int markErrors(gameData * game, char ** cmdArr) {
 
 void printBoard(gameData * game) {
 	int i, j;
+	if (game->mode != 1 && game->mode !=2) {
+		printf(ERROR_INV_CMD);
+		return;
+	}
 	for (j = 0; j < game->bSize; j++) {
 		if (j % game->m == 0) {
 			printRowSep(game);
