@@ -1,8 +1,8 @@
 /*
  * GameAux.c
  *
- *  Created on: 21 Aug 2018
- *      Author: guywaldman
+ *  Functions assisting the functions of the Game module.
+ *
  */
 
 #include <string.h>
@@ -20,7 +20,6 @@
 #define ALLOC_FAILED "Memory allocation failed\n"
 #define SCAN_FAILED "fscanf failed\n"
 #define PRINT_FAILED "fprintf failed\n"
-#define cmdLen 256
 
 
 void checkAlloc(void * p) { /*check memory allocations*/

@@ -1,14 +1,13 @@
 /*
  * gurobi.h
  *
- *  Created on: 3 ���� 2018
- *      Author: User
  */
 
 #ifndef GUROBI_H_
 #define GUROBI_H_
 
 #include "Game.h"
+
 /*Receives game and returns 1 if the board is solvable else 0*/
 int gurobi_solver(gameData *game);
 

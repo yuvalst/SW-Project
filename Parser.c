@@ -1,6 +1,7 @@
 /*
  * Parser.c
  *
+ * Functions used to receive input from the user and pass it on to the relevant command function.
  */
 
 #include <string.h>
@@ -9,7 +10,7 @@
 #include "Parser.h"
 
 
-#define cmdLen 256
+#define cmdLen 258
 #define DELIMITER " \t\r\n"
 #define SOLVE "solve"
 #define EDIT "edit"
@@ -67,7 +68,7 @@ int checkTokens(char ** cmd, char ** cmdArr, int inputs, int * res){
  * 	0 - else
  */
 int checkLine(char input []) {
-	if (!strchr(input, '\n')) { /*line has more than 256 chars because '\n' isn't found in the first 256 chars*/
+	if (!strchr(input, '\n') && !feof(stdin)) { /*line has more than 256 chars because '\n' isn't found in the first 256 chars*/
 		printf(ERROR_INV_CMD);
 		while (!strchr(input,'\n') && fgets(input, cmdLen, stdin)) { } /*clear input buffer*/
 		return 0;
@@ -97,7 +98,7 @@ int getCommand(gameData * game) {
 	if (checkEOF == NULL) { /*EOF - main exits game*/
 		return -1;
 	}
-	if (checkLine(input) == 0) { /*check if command exceeds 256 chars*/
+	if (checkLine(input) == 0) { /*check if command exceeds 256 chars or reached EOF after reading from stdin*/
 		return 0;
 	}
 	cmd = strtok(input, DELIMITER);

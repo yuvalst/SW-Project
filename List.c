@@ -1,5 +1,7 @@
 /*
  * List.c
+ *
+ * Module representing the command linked list.
  */
 
 
@@ -92,8 +94,8 @@ void insertAtCurr(gameData * game, int cmd) {
 		game->curr = newNode;
 		return;
 	}
-	clearToEnd(&game->curr->next);
-	game->curr->next = newNode;
+	clearToEnd(&game->curr->next); /*clear next nodes*/
+	game->curr->next = newNode; /*insert the new node*/
 	newNode->prev = game->curr;
 	game->curr = newNode;
 }
