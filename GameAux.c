@@ -1,8 +1,8 @@
 /*
  * GameAux.c
  *
- *  Created on: 21 Aug 2018
- *      Author: guywaldman
+ *  Functions assisting the functions of the Game module.
+ *
  */
 
 #include <string.h>
