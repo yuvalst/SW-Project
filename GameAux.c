@@ -18,6 +18,8 @@
 #define ERROR_SOL "Puzzle solution erroneous\n"
 #define PUZ_SOLVED "Puzzle solved successfully\n"
 #define ALLOC_FAILED "Memory allocation failed\n"
+#define SCAN_FAILED "fscanf failed\n"
+#define PRINT_FAILED "fprintf failed\n"
 #define cmdLen 256
 
 
@@ -28,6 +30,21 @@ void checkAlloc(void * p) { /*check memory allocations*/
 	}
 }
 
+int checkScan(int check, int expect) {
+	if (check < expect) {
+		printf(SCAN_FAILED);
+		return 0;
+	}
+	return 1;
+}
+
+int checkPrint(int check) {
+	if (check < 0) {
+		printf(PRINT_FAILED);
+		return 0;
+	}
+	return 1;
+}
 
 gameData * initGame() {
 	gameData * game = (gameData*)malloc(sizeof(gameData));

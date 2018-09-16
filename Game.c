@@ -43,15 +43,21 @@
 
 int solve(gameData * game, char * path) {
 	FILE * gameF;
-	int cell, i, j;
+	int cell, i, j, check;
 	char c;
 	gameF = fopen(path, "r");
-	if (gameF == NULL) {
+	if (gameF == NULL) { /*error while opening file*/
 		printf(ERROR_FILE);
 		return 0;
 	}
-	fscanf(gameF, "%d", &(game->m));
-	fscanf(gameF, "%d", &(game->n));
+	check = fscanf(gameF, "%d", &(game->m));
+	if (!checkScan(check, 1)) {
+		return 0;
+	}
+	check = fscanf(gameF, "%d", &(game->n));
+	if (!checkScan(check, 1)) {
+		return 0;
+	}
 	game->bSize = game->m * game->n;
 	newGame(game, 1); /*frees current game resources, builds new board according to bSize, changes mode to 1 (solve)*/
 	if (game->head == NULL) {
@@ -59,7 +65,10 @@ int solve(gameData * game, char * path) {
 	}
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
-			fscanf(gameF, "%d%c", &cell, &c);
+			check = fscanf(gameF, "%d%c", &cell, &c);
+			if (!checkScan(check, 2)) {
+				return 0;
+			}
 			game->board[i][j] = cell;
 			if (cell != 0) {
 				game->numEmpty--;
@@ -79,7 +88,7 @@ int solve(gameData * game, char * path) {
 int edit(gameData * game, char* path) {
 	FILE * gameF;
 	char c = 0;
-	int i, j;
+	int i, j, check;
 	if (path == NULL) { /*create empty 9x9 board*/
 		game->m = 3;
 		game->n = 3;
@@ -95,8 +104,14 @@ int edit(gameData * game, char* path) {
 			printf(ERROR_FILE2);
 			return 0;
 		}
-		fscanf(gameF, "%d", &game->m);
-		fscanf(gameF, "%d", &game->n);
+		check = fscanf(gameF, "%d", &game->m);
+		if (!checkScan(check, 1)) {
+			return 0;
+		}
+		check = fscanf(gameF, "%d", &game->n);
+		if (!checkScan(check, 1)) {
+			return 0;
+		}
 		game->bSize = game->m * game->n;
 		newGame(game, 2);
 		if (game->head == NULL) {
@@ -104,7 +119,10 @@ int edit(gameData * game, char* path) {
 		}
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
-				fscanf(gameF, "%d%c", &game->board[i][j], &c);
+				check = fscanf(gameF, "%d%c", &game->board[i][j], &c);
+				if (!checkScan(check, 2)) {
+					return 0;
+				}
 				if (game->board[i][j] != 0) {
 					game->numEmpty--;
 				}

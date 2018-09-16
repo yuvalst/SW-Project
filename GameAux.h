@@ -13,6 +13,12 @@
 /*checks memory allocation for the pointer p*/
 void checkAlloc(void * p);
 
+/*checks if fscanf succeeded*/
+int checkScan(int check, int expect);
+
+/*checks if fprintf succeeded*/
+int checkPrint(int check);
+
 /* Used to initialize a new gameData object with default fields.*/
 gameData * initGame();
 
