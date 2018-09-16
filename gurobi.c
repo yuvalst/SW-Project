@@ -46,6 +46,8 @@ int addConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, do
 	}
 	return 1;
 }
+
+
 /*adds constraints for each block of cells*/
 int addBlockConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * ind, double * val, int bS, int cols, int rows) {
 	int i, j, v, blockRow, blockCol, count;
@@ -71,6 +73,7 @@ int addBlockConstraints (GRBenv ** env, GRBmodel ** model, int * error, int * in
 	return 1;
 }
 
+/*retrieves solution*/
 int solution (gameData * game, int * optimstatus, double * sol, int bS) {
 	int i, j, v;
 	if (*optimstatus == GRB_OPTIMAL) {
@@ -87,19 +90,13 @@ int solution (gameData * game, int * optimstatus, double * sol, int bS) {
 		return 1;
 	}
 	/* no solution found */
-	else if (*optimstatus == GRB_INF_OR_UNBD) {
-		/*printf("Model is infeasible or unbounded\n");*/
-		return -1;
-	}
-	/* error or calculation stopped */
 	else {
-		/*printf("Optimization was stopped early\n");*/
 		return -1;
 	}
 }
 
 
-
+/*initializes gurobi, adds constraints, tries to solve and returns solution*/
 int ilp(gameData* game, double* sol, int * ind, double* val, double* obj ,char * vtype) {
 	GRBenv   *env   = NULL;
 	GRBmodel *model = NULL;

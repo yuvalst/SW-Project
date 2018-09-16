@@ -40,7 +40,6 @@ int isFull(stack *stk) {
 	return ((stk->top == stk->full));
 }
 
-
 void freeStack(stack *stk) {
 	if (stk->arr != NULL) {
 		free(stk->arr);

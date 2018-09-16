@@ -1,8 +1,8 @@
 /*
- * Stack.h
+ * Stack.h Summary:
  *
- *  Created on: 18 ���� 2018
- *      Author: yuval
+ * Module representing the stack used for exhaustiveBT.
+ *
  */
 
 #ifndef STACK_H_
@@ -15,13 +15,13 @@
 #define EMPTY     -1
 
 
+/*Declaration of struct stack*/
 typedef struct stack {
-   int * arr;
+   int * arr; /*array acting as the stack, holds the cells*/
    int top;
    int full;
 } stack;
 
-int stkSize(stack * stk);
 
 void initStack(gameData * game, stack *stk);
 void push(stack *stk, int i, int j, int z);

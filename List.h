@@ -1,8 +1,8 @@
 /*
  * List.h
  *
- *  Created on: 23 Jul 2018
- *      Author: guywaldman
+ * Module representing the command linked list.
+ *
  */
 
 #ifndef LIST_H_
@@ -22,7 +22,16 @@
 };
 
 
-
+ /*
+  * Used to add board changes to the curr node in the command list. Call this function before changing the game board.
+  *
+  * @param game- Game structure
+  * @param x - col of cell as user sees it (starting at 1)
+  * @param y - row of cell as user sees it (starting at 1)
+  * @param z - value changed to
+  * @param type - 0 - change happened to a cell value, 1 - change happened to a cell's status (erroneous)
+  *
+  */
 void addToNode(gameData * game, int x, int y, int z, int type);
 
 /*Receives a pointer to node and clears it and all the nodes after*/
