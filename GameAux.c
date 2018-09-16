@@ -20,7 +20,6 @@
 #define ALLOC_FAILED "Memory allocation failed\n"
 #define SCAN_FAILED "fscanf failed\n"
 #define PRINT_FAILED "fprintf failed\n"
-#define cmdLen 256
 
 
 void checkAlloc(void * p) { /*check memory allocations*/

@@ -20,7 +20,6 @@
 int main(void) {
 	int run = 1;
 	time_t seed;
-	/*char * cmdArr[3];*/
 	gameData * game = initGame();
 	printf(SUDOKU);
 	seed = time(NULL);
