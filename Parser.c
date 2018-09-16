@@ -1,6 +1,7 @@
 /*
  * Parser.c
  *
+ * Functions used to receive input from the user and pass it on to the relevant command function.
  */
 
 #include <string.h>

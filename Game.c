@@ -1,16 +1,16 @@
 /*
- * Game.c
- *  Created on: 23 Jul 2018
- *      Author: guywaldman
+ * Game Summary:
+ *
+ * Functions representing the different user commands. Each one takes care of a command's situations.
+ *
  */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "Game.h"
 #include "GameAux.h"
 #include "List.h"
-
-
 
 
 #define ERROR_INV_CMD "ERROR: invalid command\n"
@@ -63,10 +63,10 @@ int solve(gameData * game, char * path) {
 	if (game->head == NULL) {
 		insertAtCurr(game, 2); /*dummy head node*/
 	}
-	for(j = 0; j < game->bSize; j++) {
+	for(j = 0; j < game->bSize; j++) { /*get cell values*/
 		for(i = 0; i < game->bSize; i++) {
 			check = fscanf(gameF, "%d%c", &cell, &c);
-			if (j != game->bSize - 1 || i != game->bSize - 1) {
+			if (j != game->bSize - 1 || i != game->bSize - 1) { /*not last cell*/
 				if (!checkScan(check, 2)) {
 					return 0;
 				}
@@ -124,7 +124,7 @@ int edit(gameData * game, char* path) {
 		if (game->head == NULL) {
 			insertAtCurr(game, 2); /*dummy head node*/
 		}
-		for(j = 0; j < game->bSize; j++) {
+		for(j = 0; j < game->bSize; j++) { /*read cell values*/
 			for(i = 0; i < game->bSize; i++) {
 				check = fscanf(gameF, "%d%c", &game->board[i][j], &c);
 				if (j != game->bSize - 1 || i != game->bSize - 1) {
@@ -181,16 +181,16 @@ void printBoard(gameData * game) {
 		return;
 	}
 	for (j = 0; j < game->bSize; j++) {
-		if (j % game->m == 0) {
+		if (j % game->m == 0) { /*every m rows*/
 			printRowSep(game);
 		}
 		for (i = 0; i < game->bSize; i++) {
-			if (i % game->n == 0) {
+			if (i % game->n == 0) { /*every n cols*/
 				printf("|");
 			}
-			if (game->board[i][j] == 0) {
+			if (game->board[i][j] == 0) { /*empty cell*/
 				printf("    ");
-				continue;
+				continue; /*move to next cell*/
 			}
 			printf(" %2d", game->board[i][j]);
 			if (game->mode == 1 && game->board[i + game->bSize][j] == 1) {
