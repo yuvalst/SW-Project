@@ -66,8 +66,15 @@ int solve(gameData * game, char * path) {
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
 			check = fscanf(gameF, "%d%c", &cell, &c);
-			if (!checkScan(check, 2)) {
-				return 0;
+			if (j != game->bSize - 1 || i != game->bSize - 1) {
+				if (!checkScan(check, 2)) {
+					return 0;
+				}
+			}
+			else {
+				if (!checkScan(check, 1)) {
+					return 0;
+				}
 			}
 			game->board[i][j] = cell;
 			if (cell != 0) {
@@ -120,8 +127,15 @@ int edit(gameData * game, char* path) {
 		for(j = 0; j < game->bSize; j++) {
 			for(i = 0; i < game->bSize; i++) {
 				check = fscanf(gameF, "%d%c", &game->board[i][j], &c);
-				if (!checkScan(check, 2)) {
-					return 0;
+				if (j != game->bSize - 1 || i != game->bSize - 1) {
+					if (!checkScan(check, 2)) {
+						return 0;
+					}
+				}
+				else {
+					if (!checkScan(check, 1)) {
+						return 0;
+					}
 				}
 				if (game->board[i][j] != 0) {
 					game->numEmpty--;
@@ -422,7 +436,7 @@ int redo(gameData * game) {
 
 int save(gameData * game, char * path) {
 	FILE * gameF;
-	int i, j;
+	int i, j, check;
 	if (game->mode == 0) {
 		printf(ERROR_INV_CMD);
 		return 0;
@@ -442,17 +456,33 @@ int save(gameData * game, char * path) {
 		printf(ERROR_FILE);
 		return 0;
 	}
-	fprintf(gameF, "%d %d\n", game->m, game->n);
+	check = fprintf(gameF, "%d %d\n", game->m, game->n);
+	if (!checkPrint(check)) {
+		return 0;
+	}
 	for(j = 0; j < game->bSize; j++) {
 		for(i = 0; i < game->bSize; i++) {
-			fprintf(gameF, "%d", game->board[i][j]);
-			if (game->board[i][j] != 0 && (game->mode == 2 || game->board[game->bSize + i][j] == 1)) { /*fixed cell, not empty cell*/
-				fprintf(gameF, ".");
+			check = fprintf(gameF, "%d", game->board[i][j]);
+			printf("check: %d\n", check);
+			if (!checkPrint(check)) {
+				return 0;
 			}
-			fprintf(gameF, " ");
+			if (game->board[i][j] != 0 && (game->mode == 2 || game->board[game->bSize + i][j] == 1)) { /*fixed cell, not empty cell*/
+				check = fprintf(gameF, ".");
+				if (!checkPrint(check)) {
+					return 0;
+				}
+			}
+			check = fprintf(gameF, " ");
+			if (!checkPrint(check)) {
+				return 0;
+			}
 		}
 		if (j != game->bSize - 1) {
-			fprintf(gameF, "\n");
+			check = fprintf(gameF, "\n");
+			if (!checkPrint(check)) {
+				return 0;
+			}
 		}
 	}
 	fclose(gameF);
